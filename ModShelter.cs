@@ -133,7 +133,8 @@ namespace ModShelter
 
         private void InitWindow()
         {
-            ModShelterWindow = GUI.Window(0, ModShelterWindow, InitModWindow, $"{nameof(ModShelter)}", GUI.skin.window);
+            int wid = GetHashCode();
+            ModShelterWindow = GUI.Window(wid, ModShelterWindow, InitModWindow, $"{nameof(ModShelter)}", GUI.skin.window);
         }
 
         private void InitModWindow(int windowId)
