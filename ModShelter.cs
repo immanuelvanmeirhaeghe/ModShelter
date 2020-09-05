@@ -17,9 +17,11 @@ namespace ModShelter
     {
         private static ModShelter s_Instance;
 
+        private static readonly string ModName = nameof(ModShelter);
+
         private bool showUI = false;
 
-        public Rect ModShelterWindow = new Rect(10f, 500f, 450f, 150f);
+        public Rect ModShelterScreen = new Rect(10f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -75,7 +77,6 @@ namespace ModShelter
         private void EnableCursor(bool blockPlayer = false)
         {
             CursorManager.Get().ShowCursor(blockPlayer, false);
-            player = Player.Get();
 
             if (blockPlayer)
             {
@@ -134,26 +135,7 @@ namespace ModShelter
         private void InitWindow()
         {
             int wid = GetHashCode();
-            ModShelterWindow = GUI.Window(wid, ModShelterWindow, InitModWindow, $"{nameof(ModShelter)}", GUI.skin.window);
-        }
-
-        private void InitModWindow(int windowId)
-        {
-            if (GUI.Button(new Rect(440f, 500f, 20f, 20f), "X", GUI.skin.button))
-            {
-                CloseWindow();
-            }
-
-            GUI.Label(new Rect(30f, 520f, 200f, 20f), "Shelter- and bed blueprints.", GUI.skin.label);
-            if (GUI.Button(new Rect(280f, 520f, 150f, 20f), "Unlock resting places", GUI.skin.button))
-            {
-                OnClickUnlockRestingPlacesButton();
-                CloseWindow();
-            }
-
-            CreateF8Option();
-
-            GUI.DragWindow(new Rect(0, 0, 10000, 10000));
+            ModShelterScreen = GUILayout.Window(wid, ModShelterScreen, InitModShelterScreen, $"{ModName}", GUI.skin.window);
         }
 
         private void CloseWindow()
@@ -162,18 +144,48 @@ namespace ModShelter
             EnableCursor(false);
         }
 
+        private void InitModShelterScreen(int windowID)
+        {
+            using (var verticalScope = new GUILayout.VerticalScope($"{ModName}box"))
+            {
+                if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
+                {
+                    CloseWindow();
+                }
+
+                using (var horizontalScope = new GUILayout.HorizontalScope("rplaceBox"))
+                {
+                    GUILayout.Label("Shelter- and bed blueprints.", GUI.skin.label);
+                    if (GUILayout.Button("Unlock resting places", GUI.skin.button))
+                    {
+                        OnClickUnlockRestingPlacesButton();
+                        CloseWindow();
+                    }
+                }
+
+                CreateF8Option();
+            }
+            GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
+        }
+
         private void CreateF8Option()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                GUI.Label(new Rect(30f, 560f, 200f, 20f), "Use F8 to instantly finish", GUI.skin.label);
-                UseOptionF8 = GUI.Toggle(new Rect(280f, 560f, 20f, 20f), UseOptionF8, "");
+                using (var horizontalScope = new GUILayout.HorizontalScope("actionBox"))
+                {
+                    GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
+                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "");
+                }
             }
             else
             {
-                GUI.Label(new Rect(30f, 560f, 330f, 20f), "Use F8 to instantly to finish any constructions", GUI.skin.label);
-                GUI.Label(new Rect(30f, 580f, 330f, 20f), "is only for single player or when host", GUI.skin.label);
-                GUI.Label(new Rect(30f, 600f, 330f, 20f), "Host can activate using ModManager.", GUI.skin.label);
+                using (var verticalScope = new GUILayout.VerticalScope("infoBox"))
+                {
+                    GUILayout.Label("Use F8 to instantly to finish any constructions", GUI.skin.label);
+                    GUILayout.Label("is only for single player or when host", GUI.skin.label);
+                    GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
+                }
             }
         }
 
@@ -185,7 +197,7 @@ namespace ModShelter
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(ModShelter)}.{nameof(ModShelter)}:{nameof(OnClickUnlockRestingPlacesButton)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(OnClickUnlockRestingPlacesButton)}] throws exception: {exc.Message}");
             }
         }
 
@@ -211,12 +223,12 @@ namespace ModShelter
                 }
                 else
                 {
-                    ShowHUDBigInfo("All resting places were already unlocked!", $"{nameof(ModShelter)} Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo("All resting places were already unlocked!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
             {
-                ModAPI.Log.Write($"[{nameof(ModShelter)}.{nameof(ModShelter)}:{nameof(UnlockAllRestingPlaces)}] throws exception: {exc.Message}");
+                ModAPI.Log.Write($"[{ModName}.{ModName}:{nameof(UnlockAllRestingPlaces)}] throws exception: {exc.Message}");
             }
         }
 
