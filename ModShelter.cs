@@ -146,14 +146,14 @@ namespace ModShelter
 
         private void InitModShelterScreen(int windowID)
         {
-            using (var verticalScope = new GUILayout.VerticalScope($"{ModName}box"))
+            using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
             {
                 if (GUI.Button(new Rect(430f, 0f, 20f, 20f), "X", GUI.skin.button))
                 {
                     CloseWindow();
                 }
 
-                using (var horizontalScope = new GUILayout.HorizontalScope("rplaceBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Shelter- and bed blueprints.", GUI.skin.label);
                     if (GUILayout.Button("Unlock resting places", GUI.skin.button))
@@ -172,7 +172,7 @@ namespace ModShelter
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope("actionBox"))
+                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
                     UseOptionF8 = GUILayout.Toggle(UseOptionF8, "");
@@ -180,7 +180,7 @@ namespace ModShelter
             }
             else
             {
-                using (var verticalScope = new GUILayout.VerticalScope("infoBox"))
+                using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Use F8 to instantly to finish any constructions", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
