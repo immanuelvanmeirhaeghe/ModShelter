@@ -19,9 +19,9 @@ namespace ModShelter
 
         private static readonly string ModName = nameof(ModShelter);
 
-        private bool showUI = false;
+        private bool ShowUI = false;
 
-        public Rect ModShelterScreen = new Rect(10f, 500f, 450f, 150f);
+        public static Rect ModShelterScreen = new Rect(10f, 500f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -35,7 +35,7 @@ namespace ModShelter
 
         public static List<ItemInfo> RestingPlaceItemInfos = new List<ItemInfo>();
         public static bool HasUnlockedRestingPlaces { get; set; }
-        public bool UseOptionF8 { get; private set; }
+        public bool InstantFinishConstructionsOption { get; private set; }
 
         public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
@@ -96,23 +96,27 @@ namespace ModShelter
         {
             if (Input.GetKeyDown(KeyCode.Home))
             {
-                if (!showUI)
+                if (!ShowUI)
                 {
                     InitData();
                     EnableCursor(true);
                 }
-                // toggle menu
-                showUI = !showUI;
-                if (!showUI)
+                ToggleShowUI();
+                if (!ShowUI)
                 {
                     EnableCursor(false);
                 }
             }
         }
 
+        private void ToggleShowUI()
+        {
+            ShowUI = !ShowUI;
+        }
+
         private void OnGUI()
         {
-            if (showUI)
+            if (ShowUI)
             {
                 InitData();
                 InitSkinUI();
@@ -140,7 +144,7 @@ namespace ModShelter
 
         private void CloseWindow()
         {
-            showUI = false;
+            ShowUI = false;
             EnableCursor(false);
         }
 
@@ -163,19 +167,18 @@ namespace ModShelter
                     }
                 }
 
-                CreateF8Option();
+                InstantFinishConstructionsOptionButton();
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
         }
 
-        private void CreateF8Option()
+        private void InstantFinishConstructionsOptionButton()
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Use F8 to instantly finish", GUI.skin.label);
-                    UseOptionF8 = GUILayout.Toggle(UseOptionF8, "");
+                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use F8 to instantly finish any constructions?", GUI.skin.toggle);
                 }
             }
             else
