@@ -21,7 +21,7 @@ namespace ModShelter
 
         private bool ShowUI = false;
 
-        public static Rect ModShelterScreen = new Rect(10f, 500f, 450f, 150f);
+        public static Rect ModShelterScreen = new Rect(Screen.width /10f, Screen.height / 2f, 450f, 150f);
 
         private static ItemsManager itemsManager;
 
@@ -37,8 +37,26 @@ namespace ModShelter
         public static bool HasUnlockedRestingPlaces { get; set; }
         public bool InstantFinishConstructionsOption { get; private set; }
 
-        public bool IsModActiveForMultiplayer => FindObjectOfType(typeof(ModManager.ModManager)) != null && ModManager.ModManager.AllowModsForMultiplayer;
+        public bool IsModActiveForMultiplayer { get; private set; }
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+
+        private static string HUDBigInfoMessage(string message) => $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.red)}>System</color>\n{message}";
+
+        public void Start()
+        {
+            ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+        }
+
+        private void ModManager_onPermissionValueChanged(bool optionValue)
+        {
+            IsModActiveForMultiplayer = optionValue;
+            ShowHUDBigInfo(
+                          (optionValue ?
+                            HUDBigInfoMessage($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.green)}>Permission to use mods for multiplayer was granted!</color>")
+                            : HUDBigInfoMessage($"<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>Permission to use mods for multiplayer was revoked!</color>")),
+                           $"{ModName} Info",
+                           HUDInfoLogTextureType.Count.ToString());
+        }
 
         public ModShelter()
         {
@@ -185,7 +203,7 @@ namespace ModShelter
             {
                 using (var verticalScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Use F8 to instantly to finish any constructions", GUI.skin.label);
+                    GUILayout.Label("Use F8 to instantly finish any constructions", GUI.skin.label);
                     GUILayout.Label("is only for single player or when host", GUI.skin.label);
                     GUILayout.Label("Host can activate using ModManager.", GUI.skin.label);
                 }
@@ -226,7 +244,11 @@ namespace ModShelter
                 }
                 else
                 {
-                    ShowHUDBigInfo("All resting places were already unlocked!", $"{ModName} Info", HUDInfoLogTextureType.Count.ToString());
+                    ShowHUDBigInfo(
+                         HUDBigInfoMessage(
+                             $"<color=#{ColorUtility.ToHtmlStringRGBA(Color.yellow)}>All resting places were already unlocked!</color>"),
+                        $"{ModName} Info",
+                        HUDInfoLogTextureType.Count.ToString());
                 }
             }
             catch (Exception exc)
