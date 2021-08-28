@@ -6,11 +6,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("ModAPI.ModShelter")]
-[assembly: AssemblyDescription("ModShelter is a mod for Green Hell that allows a player to unlocks all shelters and beds. It also gives the player the possibility to instantly finish any ongoing building.")]
+[assembly: AssemblyDescription("ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds. It also gives the player the possibility to instantly finish any ongoing building.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Dragon Legion")]
 [assembly: AssemblyProduct("ModAPI.ModShelter")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

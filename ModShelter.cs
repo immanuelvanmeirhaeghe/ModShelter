@@ -1,24 +1,21 @@
 ﻿using Enums;
+using ModShelter.Enums;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Xml;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ModShelter
 {
-    public enum MessageType
-    {
-        Info,
-        Warning,
-        Error
-    }
 
     /// <summary>
-    /// ModShelter is a mod for Green Hell
-    /// that allows a player to unlocks all shelters and beds.
+    /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
     /// It also gives the player the possibility to instantly finish any ongoing building.
 	/// (only in single player mode - Use ModManager for multiplayer).
-    /// Enable the mod UI by pressing Home.
+    ///  Press Home (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModShelter : MonoBehaviour
     {
@@ -29,6 +26,8 @@ namespace ModShelter
         private static readonly float ModScreenMaxWidth = 550f;
         private static readonly float ModScreenMinHeight = 50f;
         private static readonly float ModScreenMaxHeight = 200f;
+
+        private Color DefaultGuiColor = GUI.color;
 
         private static ModShelter Instance;
         private static ItemsManager LocalItemsManager;
@@ -49,7 +48,9 @@ namespace ModShelter
             ItemID.Medium_Shelter,
             ItemID.Medium_Bamboo_Shelter,
             ItemID.Small_Shelter,
-            ItemID.Small_Bamboo_Shelter
+            ItemID.Small_Bamboo_Shelter,
+            ItemID.tribe_shelter_small,
+            ItemID.tribe_shelter_big
         };
 
         public static List<ItemID> BedItemIds { get; set; } = new List<ItemID> {
@@ -65,9 +66,15 @@ namespace ModShelter
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
-        public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
+        private void HandleException(Exception exc, string methodName)
+        {
+            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
+            ModAPI.Log.Write(info);
+            ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
+        }
         public static string AlreadyUnlockedBlueprints() => $"All blueprints were already unlocked!";
-        public static string PermissionChangedMessage(string permission) => $"Permission to use mods and cheats in multiplayer was {permission}!";
+        public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
+        public static string PermissionChangedMessage(string permission, string reason) => $"Permission to use mods and cheats in multiplayer was {permission} because {reason}.";
         public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
             => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
@@ -97,18 +104,66 @@ namespace ModShelter
                 );
         }
 
+        private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
+        private static KeyCode ModBindingKeyId { get; set; } = KeyCode.Home;
+        private KeyCode GetConfigurableKey(string keybindingId)
+        {
+            KeyCode configuredKeyCode = default;
+            string configuredKeybinding = string.Empty;
+
+            try
+            {
+                //ModAPI.Log.Write($"Searching XML runtime configuration file {RuntimeConfigurationFile}...");
+                if (File.Exists(RuntimeConfigurationFile))
+                {
+                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
+                    {
+                        //ModAPI.Log.Write($"Reading XML runtime configuration file...");
+                        while (xmlReader.Read())
+                        {
+                            //ModAPI.Log.Write($"Searching configuration for Button with ID = {keybindingId}...");
+                            if (xmlReader.ReadToFollowing(nameof(Button)))
+                            {
+                                if (xmlReader["ID"] == keybindingId)
+                                {
+                                    //ModAPI.Log.Write($"Found configuration for Button with ID = {keybindingId}!");
+                                    configuredKeybinding = xmlReader.ReadElementContentAsString();
+                                    //ModAPI.Log.Write($"Configured keybinding = {configuredKeybinding}.");
+                                }
+                            }
+                        }
+                    }
+                    //ModAPI.Log.Write($"XML runtime configuration\n{File.ReadAllText(RuntimeConfigurationFile)}\n");
+                }
+
+                configuredKeyCode = !string.IsNullOrEmpty(configuredKeybinding)
+                                                            ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybinding.Replace("NumPad", "Alpha"))
+                                                            : ModBindingKeyId;
+                //ModAPI.Log.Write($"Configured key code: { configuredKeyCode }");
+                return configuredKeyCode;
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(GetConfigurableKey));
+                return configuredKeyCode;
+            }
+        }
+
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
+            ModBindingKeyId = GetConfigurableKey(nameof(ModBindingKeyId));
         }
 
         private void ModManager_onPermissionValueChanged(bool optionValue)
         {
+            string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
             IsModActiveForMultiplayer = optionValue;
+
             ShowHUDBigInfo(
                           (optionValue ?
-                            HUDBigInfoMessage(PermissionChangedMessage($"granted"), MessageType.Info, Color.green)
-                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked"), MessageType.Info, Color.yellow))
+                            HUDBigInfoMessage(PermissionChangedMessage($"granted", $"{reason}"), MessageType.Info, Color.green)
+                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked", $"{reason}"), MessageType.Info, Color.yellow))
                             );
         }
 
@@ -143,7 +198,7 @@ namespace ModShelter
 
         private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Home))
+            if (Input.GetKeyDown(ModBindingKeyId))
             {
                 if (!ShowUI)
                 {
@@ -256,17 +311,22 @@ namespace ModShelter
             {
                 using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
+                    GUI.color = DefaultGuiColor;
                     InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
                 }
             }
             else
             {
-                using (var infoScope = new GUILayout.VerticalScope(GUI.skin.box))
-                {
-                    GUI.color = Color.yellow;
-                    GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
-                    GUI.color = Color.white;
-                }
+                OnlyForSingleplayerOrWhenHostBox();
+            }
+        }
+
+        private void OnlyForSingleplayerOrWhenHostBox()
+        {
+            using (var infoScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUI.color = Color.yellow;
+                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
             }
         }
 
@@ -293,13 +353,6 @@ namespace ModShelter
             {
                 HandleException(exc, nameof(OnClickUnlockRestingPlacesButton));
             }
-        }
-
-        private void HandleException(Exception exc, string methodName)
-        {
-            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
-            ModAPI.Log.Write(info);
-            ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
         }
 
         public void UnlockAllRestingPlaces()

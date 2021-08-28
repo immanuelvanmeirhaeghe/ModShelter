@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ModShelter</RootNamespace>
     <AssemblyName>ModShelter</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -349,6 +349,7 @@
   <ItemGroup>
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\ItemInfoExtended.cs" />
+    <Compile Include="Enums.cs" />
     <Compile Include="ModShelter.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
