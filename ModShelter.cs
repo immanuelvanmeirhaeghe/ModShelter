@@ -14,7 +14,7 @@ namespace ModShelter
     /// <summary>
     /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
     /// It also gives the player the possibility to instantly finish any ongoing building.
-	/// (only in single player mode - Use ModManager for multiplayer).
+	/// (only in single player mode or when multiplayer host - Use ModManager for multiplayer).
     ///  Press Home (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModShelter : MonoBehaviour
@@ -105,7 +105,7 @@ namespace ModShelter
         }
 
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModBindingKeyId { get; set; } = KeyCode.Home;
+        private static KeyCode ModShelterBindingKeyId { get; set; } = KeyCode.Home;
         private KeyCode GetConfigurableKey(string keybindingId)
         {
             KeyCode configuredKeyCode = default;
@@ -138,7 +138,7 @@ namespace ModShelter
 
                 configuredKeyCode = !string.IsNullOrEmpty(configuredKeybinding)
                                                             ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybinding.Replace("NumPad", "Alpha"))
-                                                            : ModBindingKeyId;
+                                                            : ModShelterBindingKeyId;
                 //ModAPI.Log.Write($"Configured key code: { configuredKeyCode }");
                 return configuredKeyCode;
             }
@@ -152,7 +152,7 @@ namespace ModShelter
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ModBindingKeyId = GetConfigurableKey(nameof(ModBindingKeyId));
+            ModShelterBindingKeyId = GetConfigurableKey(nameof(ModShelterBindingKeyId));
         }
 
         private void ModManager_onPermissionValueChanged(bool optionValue)
@@ -198,7 +198,7 @@ namespace ModShelter
 
         private void Update()
         {
-            if (Input.GetKeyDown(ModBindingKeyId))
+            if (Input.GetKeyDown(ModShelterBindingKeyId))
             {
                 if (!ShowUI)
                 {
@@ -309,9 +309,11 @@ namespace ModShelter
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (var optionsScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
+                    StatusForMultiplayer();
                     GUI.color = DefaultGuiColor;
+                    GUILayout.Label($"To toggle the mod main UI, press [{ModShelterBindingKeyId}]", GUI.skin.label);
                     InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
                 }
             }
@@ -327,6 +329,37 @@ namespace ModShelter
             {
                 GUI.color = Color.yellow;
                 GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
+            }
+        }
+
+        private void StatusForMultiplayer()
+        {
+            string reason = string.Empty;
+            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            {
+                GUI.color = Color.cyan;
+                if (IsModActiveForSingleplayer)
+                {
+                    reason = "you are the game host";
+                }
+                if (IsModActiveForMultiplayer)
+                {
+                    reason = "the game host allowed usage";
+                }
+                GUILayout.Toggle(true, PermissionChangedMessage($"granted", $"{reason}"), GUI.skin.toggle);
+            }
+            else
+            {
+                GUI.color = Color.yellow;
+                if (!IsModActiveForSingleplayer)
+                {
+                    reason = "you are not the game host";
+                }
+                if (!IsModActiveForMultiplayer)
+                {
+                    reason = "the game host did not allow usage";
+                }
+                GUILayout.Toggle(false, PermissionChangedMessage($"revoked", $"{reason}"), GUI.skin.toggle);
             }
         }
 

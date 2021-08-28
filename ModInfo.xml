@@ -1,8 +1,8 @@
 <Mod ID="ModShelter">
-  <Compatible>1.8.1</Compatible>
+  <Compatible>2.1.3</Compatible>
   <Button Standard="Pause" ID="ModKeyBindingId">
     <Name>
-      <EN>ModKeyBindingId</EN>
+      <EN>ModBindingKeyId</EN>
     </Name>
     <Description>
       <EN>Keybinding to activate the mod in game.</EN>
@@ -12,7 +12,7 @@
     <EN>ModShelter</EN>
   </Name>
   <Description>
-    <EN>ModShelter is a mod for Green Hell that allows a player to unlocks all shelters and beds. It also gives the player the possibility to instantly finish any ongoing building.</EN>
+    <EN>ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds. It also gives the player the possibility to instantly finish any ongoing building.</EN>
   </Description>
-  <Version>1.0.3.0</Version>
+  <Version>1.0.3.1</Version>
 </Mod>
