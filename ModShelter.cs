@@ -14,8 +14,8 @@ namespace ModShelter
     /// <summary>
     /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
     /// It also gives the player the possibility to instantly finish any ongoing building.
-	/// (only in single player mode or when multiplayer host - Use ModManager for multiplayer).
-    ///  Press Home (default) or the key configurable in ModAPI to open the mod screen.
+	/// (Only in single player mode or when multiplayer host - Use ModManager for multiplayer).
+    ///  Press Pause (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModShelter : MonoBehaviour
     {
@@ -105,7 +105,7 @@ namespace ModShelter
         }
 
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModShelterBindingKeyId { get; set; } = KeyCode.Home;
+        private static KeyCode ModShelterBindingKeyId { get; set; } = KeyCode.Pause;
         private KeyCode GetConfigurableKey(string keybindingId)
         {
             KeyCode configuredKeyCode = default;
