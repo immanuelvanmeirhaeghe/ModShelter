@@ -13,9 +13,8 @@ namespace ModShelter
 
     /// <summary>
     /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
-    /// It also gives the player the possibility to instantly finish any ongoing building.
-	/// (Only in single player mode or when multiplayer host - Use ModManager for multiplayer).
-    ///  Press Pause (default) or the key configurable in ModAPI to open the mod screen.
+    /// It also gives the player the possibility to instantly finish any ongoing building by pressing F8.
+    /// Press Keypad0 (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModShelter : MonoBehaviour
     {
@@ -34,8 +33,8 @@ namespace ModShelter
         private static HUDManager LocalHUDManager;
         private static Player LocalPlayer;
 
-        private static float ModScreenStartPositionX { get; set; } = (Screen.width - ModScreenMaxWidth) % ModScreenTotalWidth;
-        private static float ModScreenStartPositionY { get; set; } = (Screen.height - ModScreenMaxHeight) % ModScreenTotalHeight;
+        private static float ModScreenStartPositionX { get; set; } = Screen.width / 3f;
+        private static float ModScreenStartPositionY { get; set; } = Screen.height / 3f;
         private static bool IsMinimized { get; set; } = false;
 
         private bool ShowUI = false;
@@ -105,46 +104,42 @@ namespace ModShelter
         }
 
         private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModShelterBindingKeyId { get; set; } = KeyCode.Pause;
-        private KeyCode GetConfigurableKey(string keybindingId)
+        private static KeyCode ModKeybindingId { get; set; } = KeyCode.Keypad0;
+        private KeyCode GetConfigurableKey(string buttonId)
         {
             KeyCode configuredKeyCode = default;
             string configuredKeybinding = string.Empty;
 
             try
             {
-                //ModAPI.Log.Write($"Searching XML runtime configuration file {RuntimeConfigurationFile}...");
                 if (File.Exists(RuntimeConfigurationFile))
                 {
                     using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
                     {
-                        //ModAPI.Log.Write($"Reading XML runtime configuration file...");
                         while (xmlReader.Read())
                         {
-                            //ModAPI.Log.Write($"Searching configuration for Button with ID = {keybindingId}...");
-                            if (xmlReader.ReadToFollowing(nameof(Button)))
+                            if (xmlReader["ID"] == ModName)
                             {
-                                if (xmlReader["ID"] == keybindingId)
+                                if (xmlReader.ReadToFollowing(nameof(Button)) && xmlReader["ID"] == buttonId)
                                 {
-                                    //ModAPI.Log.Write($"Found configuration for Button with ID = {keybindingId}!");
                                     configuredKeybinding = xmlReader.ReadElementContentAsString();
-                                    //ModAPI.Log.Write($"Configured keybinding = {configuredKeybinding}.");
                                 }
                             }
                         }
                     }
-                    //ModAPI.Log.Write($"XML runtime configuration\n{File.ReadAllText(RuntimeConfigurationFile)}\n");
                 }
 
-                configuredKeyCode = !string.IsNullOrEmpty(configuredKeybinding)
-                                                            ? (KeyCode)Enum.Parse(typeof(KeyCode), configuredKeybinding.Replace("NumPad", "Alpha"))
-                                                            : ModShelterBindingKeyId;
-                //ModAPI.Log.Write($"Configured key code: { configuredKeyCode }");
+                configuredKeybinding = configuredKeybinding?.Replace("NumPad", "Keypad").Replace("Oem", "");
+
+                configuredKeyCode = (KeyCode)(!string.IsNullOrEmpty(configuredKeybinding)
+                                                            ? Enum.Parse(typeof(KeyCode), configuredKeybinding)
+                                                            : GetType().GetProperty(buttonId)?.GetValue(this));
                 return configuredKeyCode;
             }
             catch (Exception exc)
             {
                 HandleException(exc, nameof(GetConfigurableKey));
+                configuredKeyCode = (KeyCode)(GetType().GetProperty(buttonId)?.GetValue(this));
                 return configuredKeyCode;
             }
         }
@@ -152,7 +147,7 @@ namespace ModShelter
         public void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ModShelterBindingKeyId = GetConfigurableKey(nameof(ModShelterBindingKeyId));
+            ModKeybindingId = GetConfigurableKey(nameof(ModKeybindingId));
         }
 
         private void ModManager_onPermissionValueChanged(bool optionValue)
@@ -198,7 +193,7 @@ namespace ModShelter
 
         private void Update()
         {
-            if (Input.GetKeyDown(ModShelterBindingKeyId))
+            if (Input.GetKeyDown(ModKeybindingId))
             {
                 if (!ShowUI)
                 {
@@ -311,15 +306,32 @@ namespace ModShelter
             {
                 using (var optionsScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    StatusForMultiplayer();
-                    GUI.color = DefaultGuiColor;
-                    GUILayout.Label($"To toggle the mod main UI, press [{ModShelterBindingKeyId}]", GUI.skin.label);
-                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                    GUILayout.Label($"To toggle the mod main UI, press [{ModKeybindingId}]", GUI.skin.label);
+
+                    MultiplayerOptionBox();
+                    ConstructionsOptionBox();
                 }
             }
             else
             {
                 OnlyForSingleplayerOrWhenHostBox();
+            }
+        }
+
+        private void ConstructionsOptionBox()
+        {
+            try
+            {
+                using (var constructionsoptionScope = new GUILayout.VerticalScope(GUI.skin.box))
+                {
+                    GUI.color = DefaultGuiColor;
+                    GUILayout.Label($"Construction options: ", GUI.skin.label);
+                    InstantFinishConstructionsOption = GUILayout.Toggle(InstantFinishConstructionsOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                }
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(ConstructionsOptionBox));
             }
         }
 
@@ -332,47 +344,64 @@ namespace ModShelter
             }
         }
 
-        private void StatusForMultiplayer()
+        private void MultiplayerOptionBox()
         {
-            string reason = string.Empty;
-            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            try
             {
-                GUI.color = Color.cyan;
-                if (IsModActiveForSingleplayer)
+                using (var multiplayeroptionsScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    reason = "you are the game host";
+                    GUILayout.Label("Multiplayer options: ", GUI.skin.label);
+                    string multiplayerOptionMessage = string.Empty;
+                    if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+                    {
+                        GUI.color = Color.green;
+                        if (IsModActiveForSingleplayer)
+                        {
+                            multiplayerOptionMessage = $"you are the game host";
+                        }
+                        if (IsModActiveForMultiplayer)
+                        {
+                            multiplayerOptionMessage = $"the game host allowed usage";
+                        }
+                        _ = GUILayout.Toggle(true, PermissionChangedMessage($"granted", multiplayerOptionMessage), GUI.skin.toggle);
+                    }
+                    else
+                    {
+                        GUI.color = Color.yellow;
+                        if (!IsModActiveForSingleplayer)
+                        {
+                            multiplayerOptionMessage = $"you are not the game host";
+                        }
+                        if (!IsModActiveForMultiplayer)
+                        {
+                            multiplayerOptionMessage = $"the game host did not allow usage";
+                        }
+                        _ = GUILayout.Toggle(false, PermissionChangedMessage($"revoked", $"{multiplayerOptionMessage}"), GUI.skin.toggle);
+                    }
                 }
-                if (IsModActiveForMultiplayer)
-                {
-                    reason = "the game host allowed usage";
-                }
-                GUILayout.Toggle(true, PermissionChangedMessage($"granted", $"{reason}"), GUI.skin.toggle);
             }
-            else
+            catch (Exception exc)
             {
-                GUI.color = Color.yellow;
-                if (!IsModActiveForSingleplayer)
-                {
-                    reason = "you are not the game host";
-                }
-                if (!IsModActiveForMultiplayer)
-                {
-                    reason = "the game host did not allow usage";
-                }
-                GUILayout.Toggle(false, PermissionChangedMessage($"revoked", $"{reason}"), GUI.skin.toggle);
+                HandleException(exc, nameof(MultiplayerOptionBox));
             }
         }
 
         private void UnlockRestingPlacesBox()
         {
-            using (var horizontalScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                GUILayout.Label("Click to unlock all shelter - and bed info: ", GUI.skin.label);
-                if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
+                using (var unlockrestingScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    OnClickUnlockRestingPlacesButton();
-                    CloseWindow();
+                    GUILayout.Label("Click to unlock all shelter - and bed info: ", GUI.skin.label);
+                    if (GUILayout.Button("Unlock blueprints", GUI.skin.button))
+                    {
+                        OnClickUnlockRestingPlacesButton();
+                    }
                 }
+            }
+            else
+            {
+                OnlyForSingleplayerOrWhenHostBox();
             }
         }
 
