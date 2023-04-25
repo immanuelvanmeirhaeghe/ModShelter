@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using ModShelter.Managers;
+using UnityEngine;
 
 namespace ModShelter.Extensions
 {
@@ -8,6 +9,7 @@ namespace ModShelter.Extensions
         {
             base.Start();
             new GameObject($"__{nameof(ModShelter)}__").AddComponent<ModShelter>();
+            new GameObject($"__{nameof(ConstructionsManager)}__").AddComponent<ConstructionsManager>();
         }
     }
 }

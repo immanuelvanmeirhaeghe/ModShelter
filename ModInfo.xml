@@ -1,11 +1,11 @@
 <Mod ID="ModShelter">
   <Compatible>2.4.2</Compatible>
-  <Button Standard="NumPad0" ID="ModKeybindingId">
+  <Button Standard="NumPad0" ID="ShortcutKey">
     <Name>
-      <EN>ModKeybindingId</EN>
+      <EN>ShortcutKey</EN>
     </Name>
     <Description>
-      <EN>ModKeybindingId</EN>
+      <EN>ShortcutKey</EN>
     </Description>
   </Button>
   <Name>
@@ -14,5 +14,5 @@
   <Description>
     <EN>ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds. It also gives the player the possibility to instantly finish any ongoing building by pressing F8. Press Keypad0 (default) or the key configurable in ModAPI to open the mod screen.</EN>
   </Description>
-  <Version>1.0.3.2</Version>
+  <Version>1.0.3.3</Version>
 </Mod>

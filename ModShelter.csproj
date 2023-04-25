@@ -22,8 +22,7 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Reference Include="BaseModLib">
       <HintPath>../../../libs/BaseModLib.dll</HintPath>
@@ -347,10 +346,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Data\Enums.cs" />
     <Compile Include="Extensions\ConstructionGhostExtended.cs" />
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\ItemInfoExtended.cs" />
-    <Compile Include="Enums.cs" />
+    <Compile Include="Managers\ConstructionsManager.cs" />
     <Compile Include="ModShelter.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

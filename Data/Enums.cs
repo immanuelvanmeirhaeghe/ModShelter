@@ -1,4 +1,4 @@
-﻿namespace ModShelter.Enums
+﻿namespace ModShelter.Data.Enums
 {
     public enum MessageType
     {
