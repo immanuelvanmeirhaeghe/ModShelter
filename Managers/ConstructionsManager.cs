@@ -1,4 +1,5 @@
 ﻿using Enums;
+using ModShelter.Data.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -59,7 +60,9 @@ namespace ModShelter.Managers
         }
 
         protected virtual void Start()
-        { }
+        {
+            InitData();
+        }
 
         private void InitData()
         {
@@ -97,6 +100,8 @@ namespace ModShelter.Managers
             return Instance;
         }
 
+        private string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
+            => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
         public void ShowHUDBigInfo(string text, float duration = 3f)
         {
             string header = $"{ModuleName} Info";
@@ -181,11 +186,11 @@ namespace ModShelter.Managers
                     {
                         Destroy(SelectedGameObjectToDestroy);
                     }
-                    //ShowHUDBigInfo(HUDBigInfoMessage(ItemDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Info, Color.green));
+                  ShowHUDBigInfo(HUDBigInfoMessage(ItemDestroyedMessage(SelectedGameObjectToDestroyName), MessageType.Info, Color.green));
                 }
                 else
                 {
-                    //ShowHUDBigInfo(HUDBigInfoMessage(ItemNotSelectedMessage(), MessageType.Warning, Color.yellow));
+                    ShowHUDBigInfo(HUDBigInfoMessage(ItemNotSelectedMessage(), MessageType.Warning, Color.yellow));
                 }
             }
             catch (Exception exc)
