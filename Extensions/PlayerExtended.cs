@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace ModShelter
+namespace ModShelter.Extensions
 {
     class PlayerExtended : Player
     {

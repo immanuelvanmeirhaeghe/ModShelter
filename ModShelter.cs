@@ -1,4 +1,6 @@
 ﻿using Enums;
+using ModManager.Data.Enums;
+using ModManager.Data.Interfaces;
 using ModShelter.Enums;
 using System;
 using System.Collections.Generic;
@@ -60,51 +62,178 @@ namespace ModShelter
         };
         public static List<ItemInfo> RestingPlaceItemInfos = new List<ItemInfo>();
 
+        public IConfigurableMod SelectedMod { get; set; }
         public bool HasUnlockedRestingPlaces { get; set; } = false;
         public bool InstantFinishConstructionsOption { get; private set; } = false;
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+        private string HUDBigInfoMessage(string message, Enums.MessageType messageType, Color? headcolor = null)
+            => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
+        private void OnlyForSingleplayerOrWhenHostBox()
+        {
+            using (var infoScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            {
+                GUI.color = Color.yellow;
+                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
+                GUI.color = DefaultGuiColor;
+            }
+        }
 
+        private KeyCode GetConfigurableModShortcutKey(string buttonId)
+        {
+            KeyCode result = KeyCode.None;
+            string value = string.Empty;
+            try
+            {
+                if (File.Exists(RuntimeConfiguration))
+                {
+                    using (XmlReader xmlReader = XmlReader.Create(new StreamReader(RuntimeConfiguration)))
+                    {
+                        while (xmlReader.Read())
+                        {
+                            if (xmlReader["ID"] == ModName && xmlReader.ReadToFollowing("Button") && xmlReader["ID"] == buttonId)
+                            {
+                                value = xmlReader.ReadElementContentAsString();
+                            }
+                        }
+                    }
+                }
+                if (!string.IsNullOrEmpty(value))
+                {
+                    result = EnumUtils<KeyCode>.GetValue(value);
+                }
+                else if (buttonId == nameof(ShortcutKey))
+                {
+                    result = ShortcutKey;
+                }
+                return result;
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(GetConfigurableModShortcutKey));
+                if (buttonId == nameof(ShortcutKey))
+                {
+                    result = ShortcutKey;
+                }
+                return result;
+            }
+        }
+
+        public KeyCode GetShortcutKey(string buttonID)
+        {
+            var ConfigurableModList = GetModList();
+            if (ConfigurableModList != null && ConfigurableModList.Count > 0)
+            {
+                SelectedMod = ConfigurableModList.Find(cfgMod => cfgMod.ID == ModName);
+                return SelectedMod.ConfigurableModButtons.Find(cfgButton => cfgButton.ID == buttonID).ShortcutKey;
+            }
+            else
+            {
+                return KeyCode.Keypad2;
+            }
+        }
+
+        private List<IConfigurableMod> GetModList()
+        {
+            List<IConfigurableMod> modList = new List<IConfigurableMod>();
+            try
+            {
+                if (File.Exists(RuntimeConfiguration))
+                {
+                    using (XmlReader configFileReader = XmlReader.Create(new StreamReader(RuntimeConfiguration)))
+                    {
+                        while (configFileReader.Read())
+                        {
+                            configFileReader.ReadToFollowing("Mod");
+                            do
+                            {
+                                string gameID = GameID.GreenHell.ToString();
+                                string modID = configFileReader.GetAttribute(nameof(IConfigurableMod.ID));
+                                string uniqueID = configFileReader.GetAttribute(nameof(IConfigurableMod.UniqueID));
+                                string version = configFileReader.GetAttribute(nameof(IConfigurableMod.Version));
+
+                                var configurableMod = new ModManager.Data.Modding.ConfigurableMod(gameID, modID, uniqueID, version);
+
+                                configFileReader.ReadToDescendant("Button");
+                                do
+                                {
+                                    string buttonID = configFileReader.GetAttribute(nameof(IConfigurableModButton.ID));
+                                    string buttonKeyBinding = configFileReader.ReadElementContentAsString();
+
+                                    configurableMod.AddConfigurableModButton(buttonID, buttonKeyBinding);
+
+                                } while (configFileReader.ReadToNextSibling("Button"));
+
+                                if (!modList.Contains(configurableMod))
+                                {
+                                    modList.Add(configurableMod);
+                                }
+
+                            } while (configFileReader.ReadToNextSibling("Mod"));
+                        }
+                    }
+                }
+                return modList;
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(GetModList));
+                modList = new List<IConfigurableMod>();
+                return modList;
+            }
+        }
         private void HandleException(Exception exc, string methodName)
         {
-            string info = $"[{ModName}:{methodName}] throws exception:\n{exc.Message}";
+            string info = $"[{ModName}:{methodName}] throws exception -  {exc.TargetSite?.Name}:\n{exc.Message}\n{exc.InnerException}\n{exc.Source}\n{exc.StackTrace}";
             ModAPI.Log.Write(info);
-            ShowHUDBigInfo(HUDBigInfoMessage(info, MessageType.Error, Color.red));
+            Debug.Log(info);           
         }
-        public static string AlreadyUnlockedBlueprints() => $"All blueprints were already unlocked!";
-        public static string OnlyForSinglePlayerOrHostMessage() => $"Only available for single player or when host. Host can activate using ModManager.";
-        public static string PermissionChangedMessage(string permission, string reason) => $"Permission to use mods and cheats in multiplayer was {permission} because {reason}.";
-        public static string HUDBigInfoMessage(string message, MessageType messageType, Color? headcolor = null)
-            => $"<color=#{ (headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))  }>{messageType}</color>\n{message}";
 
-        public void ShowHUDBigInfo(string text)
+        public static string AlreadyUnlockedBlueprints()
+            => $"All blueprints were already unlocked!";
+        public static string OnlyForSinglePlayerOrHostMessage() 
+            => $"Only available for single player or when host. Host can activate using ModManager.";
+        public static string PermissionChangedMessage(string permission, string reason) 
+            => $"Permission to use mods and cheats in multiplayer was {permission} because {reason}.";
+
+        private void ModManager_onPermissionValueChanged(bool optionValue)
+        {
+            string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
+            IsModActiveForMultiplayer = optionValue;
+
+            ShowHUDBigInfo(
+                          (optionValue ?
+                            HUDBigInfoMessage(PermissionChangedMessage($"granted", $"{reason}"), Enums.MessageType.Info, Color.green)
+                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked", $"{reason}"), Enums.MessageType.Info, Color.yellow))
+                            );
+        }
+
+        public void ShowHUDBigInfo(string text, float duration = 3f)
         {
             string header = $"{ModName} Info";
             string textureName = HUDInfoLogTextureType.Count.ToString();
-            HUDBigInfo hudBigInfo = (HUDBigInfo)LocalHUDManager.GetHUD(typeof(HUDBigInfo));
-            HUDBigInfoData.s_Duration = 2f;
-            HUDBigInfoData hudBigInfoData = new HUDBigInfoData
+            HUDBigInfo obj = (HUDBigInfo)LocalHUDManager.GetHUD(typeof(HUDBigInfo));
+            HUDBigInfoData.s_Duration = duration;
+            HUDBigInfoData data = new HUDBigInfoData
             {
                 m_Header = header,
                 m_Text = text,
                 m_TextureName = textureName,
                 m_ShowTime = Time.time
             };
-            hudBigInfo.AddInfo(hudBigInfoData);
-            hudBigInfo.Show(true);
+            obj.AddInfo(data);
+            obj.Show(show: true);
         }
 
         public void ShowHUDInfoLog(string itemID, string localizedTextKey)
         {
-            var localization = GreenHellGame.Instance.GetLocalization();
-            HUDMessages hUDMessages = (HUDMessages)LocalHUDManager.GetHUD(typeof(HUDMessages));
-            hUDMessages.AddMessage(
-                $"{localization.Get(localizedTextKey)}  {localization.Get(itemID)}"
-                );
+            Localization localization = GreenHellGame.Instance.GetLocalization();
+            var messages = ((HUDMessages)LocalHUDManager.GetHUD(typeof(HUDMessages)));
+            messages.AddMessage($"{localization.Get(localizedTextKey)}  {localization.Get(itemID)}");
         }
 
-        private static readonly string RuntimeConfigurationFile = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
-        private static KeyCode ModKeybindingId { get; set; } = KeyCode.Keypad0;
+        private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), "RuntimeConfiguration.xml");
+        public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad0;
         private KeyCode GetConfigurableKey(string buttonId)
         {
             KeyCode configuredKeyCode = default;
@@ -112,9 +241,9 @@ namespace ModShelter
 
             try
             {
-                if (File.Exists(RuntimeConfigurationFile))
+                if (File.Exists(RuntimeConfiguration))
                 {
-                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfigurationFile)))
+                    using (var xmlReader = XmlReader.Create(new StreamReader(RuntimeConfiguration)))
                     {
                         while (xmlReader.Read())
                         {
@@ -144,22 +273,10 @@ namespace ModShelter
             }
         }
 
-        public void Start()
+        protected virtual void Start()
         {
             ModManager.ModManager.onPermissionValueChanged += ModManager_onPermissionValueChanged;
-            ModKeybindingId = GetConfigurableKey(nameof(ModKeybindingId));
-        }
-
-        private void ModManager_onPermissionValueChanged(bool optionValue)
-        {
-            string reason = optionValue ? "the game host allowed usage" : "the game host did not allow usage";
-            IsModActiveForMultiplayer = optionValue;
-
-            ShowHUDBigInfo(
-                          (optionValue ?
-                            HUDBigInfoMessage(PermissionChangedMessage($"granted", $"{reason}"), MessageType.Info, Color.green)
-                            : HUDBigInfoMessage(PermissionChangedMessage($"revoked", $"{reason}"), MessageType.Info, Color.yellow))
-                            );
+            ShortcutKey = GetShortcutKey(nameof(ShortcutKey));
         }
 
         public ModShelter()
@@ -193,7 +310,7 @@ namespace ModShelter
 
         private void Update()
         {
-            if (Input.GetKeyDown(ModKeybindingId))
+            if (Input.GetKeyDown(ShortcutKey))
             {
                 if (!ShowUI)
                 {
@@ -306,7 +423,7 @@ namespace ModShelter
             {
                 using (var optionsScope = new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"To toggle the mod main UI, press [{ModKeybindingId}]", GUI.skin.label);
+                    GUILayout.Label($"To toggle the mod main UI, press [{ShortcutKey}]", GUI.skin.label);
 
                     MultiplayerOptionBox();
                     ConstructionsOptionBox();
@@ -332,15 +449,6 @@ namespace ModShelter
             catch (Exception exc)
             {
                 HandleException(exc, nameof(ConstructionsOptionBox));
-            }
-        }
-
-        private void OnlyForSingleplayerOrWhenHostBox()
-        {
-            using (var infoScope = new GUILayout.HorizontalScope(GUI.skin.box))
-            {
-                GUI.color = Color.yellow;
-                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
             }
         }
 
@@ -435,7 +543,7 @@ namespace ModShelter
                 }
                 else
                 {
-                    ShowHUDBigInfo(HUDBigInfoMessage(AlreadyUnlockedBlueprints(), MessageType.Warning, Color.yellow));
+                    ShowHUDBigInfo(HUDBigInfoMessage(AlreadyUnlockedBlueprints(), Enums.MessageType.Warning, Color.yellow));
                 }
             }
             catch (Exception exc)
