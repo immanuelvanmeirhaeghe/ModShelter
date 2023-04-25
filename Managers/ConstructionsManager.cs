@@ -224,7 +224,16 @@ namespace ModShelter.Managers
 
         public void CreateOtherBed(ItemID itemID)
         {
-            var otherBed = LocalItemsManager.CreateItem(itemID, true, LocalPlayer.transform.position + LocalPlayer.transform.forward * 1f, LocalPlayer.transform.rotation);
+            Vector3 createPos;
+            if (itemID == ItemID.village_hammock_a || itemID == ItemID.village_hammock_b || itemID == ItemID.hammock_a)
+            {
+                createPos = LocalPlayer.transform.position + LocalPlayer.transform.forward * 1f + LocalPlayer.transform.up * 1f;
+            }
+            else
+            {
+                createPos = LocalPlayer.transform.position + LocalPlayer.transform.forward * 1f;
+            }
+            var otherBed = LocalItemsManager.CreateItem(itemID, true, createPos, LocalPlayer.transform.rotation);
             otherBed.gameObject.SetActive(true);
         }
 
