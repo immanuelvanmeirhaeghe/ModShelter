@@ -15,9 +15,10 @@ namespace ModShelter
 {
 
     /// <summary>
-    /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
-    /// It also gives the player the possibility to instantly finish any ongoing building by pressing F8.
-    /// Press Keypad1 (default) or the key configurable in ModAPI to open the mod screen.
+    /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds blueprints.
+    /// It is also possible to create or destroy some sleeping items which normally cannot be crafted.
+    /// The player can optionally choose to instantly build anything anywhere by pressing F8.
+    /// Press Keypad1 (default) or the key configurable in ModAPI to open the mod screen. 
     /// </summary>
     public class ModShelter : MonoBehaviour
     {
@@ -25,12 +26,12 @@ namespace ModShelter
         private static readonly string ModName = nameof(ModShelter);
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), $"{nameof(RuntimeConfiguration)}.xml");
 
-        private static  float ModShelterScreenTotalWidth { get; set; } = 650f;
+        private static  float ModShelterScreenTotalWidth { get; set; } = 700f;
         private static  float ModShelterScreenTotalHeight { get; set; } = 350f;
-        private static  float ModShelterScreenMinWidth { get; set; } = 500f;
-        private static float ModShelterScreenMaxWidth { get; set; } = 550f;
+        private static  float ModShelterScreenMinWidth { get; set; } = 700f;        
         private static float ModShelterScreenMinHeight { get; set; } = 50f;
-        private static float ModShelterScreenMaxHeight { get; set; } = 350f;
+        private static float ModShelterScreenMaxWidth { get; set; } = Screen.width;
+        private static float ModShelterScreenMaxHeight { get; set; } = Screen.height;
         private static int ModShelterScreenId { get; set; }
         private static float ModShelterScreenStartPositionX { get; set; } = Screen.width / 3f;
         private static float ModShelterScreenStartPositionY { get; set; } = Screen.height / 3f;
