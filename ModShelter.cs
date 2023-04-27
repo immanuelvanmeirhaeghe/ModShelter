@@ -348,7 +348,7 @@ namespace ModShelter
             ModShelterScreenStartPositionX = ModShelterScreen.x;
             ModShelterScreenStartPositionY = ModShelterScreen.y;         
 
-            using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+            using (new GUILayout.VerticalScope(GUI.skin.box))
             {
                 ScreenMenuBox();
 
