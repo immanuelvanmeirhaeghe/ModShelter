@@ -18,6 +18,7 @@ namespace ModShelter.Managers
         private static HUDManager LocalHUDManager;
         private static Player LocalPlayer;
 
+        public bool IsModEnabled { get; set; } = true;
         public List<ItemID> ShelterItemIds { get; set; } = new List<ItemID> {
             ItemID.Bed_Shelter,
             ItemID.Hut_Shelter,
@@ -51,7 +52,9 @@ namespace ModShelter.Managers
         public string ItemNotDestroyedMessage(string item)
             => $"{item} cannot be destroyed!";
         public bool DestroyTargetOption { get; set; } = false;
-        
+        public bool InstantBuildOption { get; set; } = false;
+        public bool HasUnlockedRestingPlaces { get; set; } = false;
+
         private void HandleException(Exception exc, string methodName)
         {
             string info = $"[{ModuleName}:{methodName}] throws exception -  {exc.TargetSite?.Name}:\n{exc.Message}\n{exc.InnerException}\n{exc.Source}\n{exc.StackTrace}";
@@ -64,7 +67,15 @@ namespace ModShelter.Managers
             InitData();
         }
 
-        private void InitData()
+        protected virtual void Update()
+        {
+            if (IsModEnabled)
+            {
+                InitData();
+            }
+        }
+
+        protected virtual void InitData()
         {
             LocalItemsManager = ItemsManager.Get();
             LocalHUDManager = HUDManager.Get();
@@ -237,7 +248,7 @@ namespace ModShelter.Managers
             otherBed.gameObject.SetActive(true);
         }
 
-        public void UnlockBeds()
+        private void UnlockBeds()
         {
             foreach (ItemID bedItemId in BedItemIds)
             {
@@ -249,7 +260,7 @@ namespace ModShelter.Managers
             }
         }
 
-        public void UnlockShelters()
+        private void UnlockShelters()
         {
             foreach (ItemID shelterItemId in ShelterItemIds)
             {
@@ -263,6 +274,9 @@ namespace ModShelter.Managers
 
         public void UnlockRestingPlaces()
         {
+            UnlockBeds();
+            UnlockShelters();
+
             foreach (ItemInfo restingPlaceItemInfo in RestingPlaceItemInfos)
             {
                 LocalItemsManager.UnlockItemInNotepad(restingPlaceItemInfo.m_ID);

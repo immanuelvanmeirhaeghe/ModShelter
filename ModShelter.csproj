@@ -351,6 +351,7 @@
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\ItemInfoExtended.cs" />
     <Compile Include="Managers\ConstructionsManager.cs" />
+    <Compile Include="Managers\StylingManager.cs" />
     <Compile Include="ModShelter.cs" />
     <Compile Include="Extensions\PlayerExtended.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

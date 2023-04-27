@@ -1,4 +1,5 @@
-﻿using Enums;
+﻿using AdvancedTerrainGrass;
+using Enums;
 using ModManager.Data.Enums;
 using ModManager.Data.Interfaces;
 using ModShelter.Managers;
@@ -16,7 +17,7 @@ namespace ModShelter
     /// <summary>
     /// ModShelter is a mod for Green Hell that allows a player to unlock all shelters and beds.
     /// It also gives the player the possibility to instantly finish any ongoing building by pressing F8.
-    /// Press Keypad0 (default) or the key configurable in ModAPI to open the mod screen.
+    /// Press Keypad1 (default) or the key configurable in ModAPI to open the mod screen.
     /// </summary>
     public class ModShelter : MonoBehaviour
     {
@@ -24,7 +25,7 @@ namespace ModShelter
         private static readonly string ModName = nameof(ModShelter);
         private static readonly string RuntimeConfiguration = Path.Combine(Application.dataPath.Replace("GH_Data", "Mods"), $"{nameof(RuntimeConfiguration)}.xml");
 
-        private static  float ModShelterScreenTotalWidth { get; set; } = 500f;
+        private static  float ModShelterScreenTotalWidth { get; set; } = 650f;
         private static  float ModShelterScreenTotalHeight { get; set; } = 350f;
         private static  float ModShelterScreenMinWidth { get; set; } = 500f;
         private static float ModShelterScreenMaxWidth { get; set; } = 550f;
@@ -38,132 +39,20 @@ namespace ModShelter
         private bool ShowModShelter { get; set; } = false;
         private bool ShowModInfo { get; set; } = false;
 
-        private Color DefaultColor = GUI.color;
-        private Color DefaultContentColor = GUI.contentColor;
-        private Color DefaultBackGroundColor = GUI.backgroundColor;
-        private GUIStyle HeaderLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            fontStyle = FontStyle.Bold,
-            fontSize = 16
-        };
-        private GUIStyle SubHeaderLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = HeaderLabel.alignment,
-            fontStyle = HeaderLabel.fontStyle,
-            fontSize = HeaderLabel.fontSize - 2,
-        };
-        private GUIStyle FormFieldNameLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleLeft,
-            fontSize = 12,
-            stretchWidth = true
-        };
-        private GUIStyle FormFieldValueLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleRight,
-            fontSize = 12,
-            stretchWidth = true
-        };
-        private GUIStyle FormInputTextField => new GUIStyle(GUI.skin.textField)
-        {
-            alignment = TextAnchor.MiddleRight,
-            fontSize = 12,
-            stretchWidth = true,
-            stretchHeight = true,
-            wordWrap = true
-        };
-        private GUIStyle CommentLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleLeft,
-            fontStyle = FontStyle.Italic,
-            fontSize = 12,
-            stretchWidth = true,
-            wordWrap = true
-        };
-        private GUIStyle TextLabel => new GUIStyle(GUI.skin.label)
-        {
-            alignment = TextAnchor.MiddleLeft,
-            fontSize = 12,
-            stretchWidth = true,
-            wordWrap = true
-        };
-        private GUIStyle ToggleButton => new GUIStyle(GUI.skin.toggle)
-        {
-            alignment = TextAnchor.MiddleCenter,
-            fontSize = 12,
-            stretchWidth = true
-        };
-
-        public GUIStyle ColoredToggleValueTextLabel(bool enabled, Color enabledColor, Color disabledColor)
-        {
-            GUIStyle style = TextLabel;
-            style.normal.textColor = enabled ? enabledColor : disabledColor;
-            return style;
-        }
-
-        public GUIStyle ColoredToggleButton(bool activated, Color enabledColor, Color disabledColor)
-        {
-            GUIStyle style = ToggleButton;
-            style.active.textColor = activated ? enabledColor : disabledColor;
-            style.onActive.textColor = activated ? enabledColor : disabledColor;
-            style = GUI.skin.button;
-            return style;
-        }
-
-        public GUIStyle ColoredCommentLabel(Color color)
-        {
-            GUIStyle style = CommentLabel;
-            style.normal.textColor = color;
-            return style;
-        }
-
-        public GUIStyle ColoredFieldNameLabel(Color color)
-        {
-            GUIStyle style = FormFieldNameLabel;
-            style.normal.textColor = color;
-            return style;
-        }
-
-        public GUIStyle ColoredFieldValueLabel(Color color)
-        {
-            GUIStyle style = FormFieldValueLabel;
-            style.normal.textColor = color;
-            return style;
-        }
-
-        public GUIStyle ColoredToggleFieldValueLabel(bool enabled, Color enabledColor, Color disabledColor)
-        {
-            GUIStyle style = FormFieldValueLabel;
-            style.normal.textColor = enabled ? enabledColor : disabledColor;
-            return style;
-        }
-
-        public GUIStyle ColoredHeaderLabel(Color color)
-        {
-            GUIStyle style = HeaderLabel;
-            style.normal.textColor = color;
-            return style;
-        }
-
-        public GUIStyle ColoredSubHeaderLabel(Color color)
-        {
-            GUIStyle style = SubHeaderLabel;
-            style.normal.textColor = color;
-            return style;
-        }
-
         private static HUDManager LocalHUDManager;
         private static Player LocalPlayer;
         private static ConstructionsManager LocalConstructionManager;
+        private static StylingManager LocalStylingManager;
               
         public Vector2 ModInfoScrollViewPosition { get; private set; }
         public IConfigurableMod SelectedMod { get; set; }
-        public bool HasUnlockedRestingPlaces { get; set; } = false;
-        public bool InstantBuildOption { get; private set; } = false;
+      
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
-        public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;       
+
+        public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;
+        public Vector2 ModShelterScreenTotalSize { get; set; }
+
         public KeyCode GetShortcutKey(string buttonID)
         {
             var ConfigurableModList = GetModList();
@@ -246,7 +135,7 @@ namespace ModShelter
         {
             using (new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), ColoredCommentLabel(Color.yellow));
+                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), LocalStylingManager.ColoredCommentLabel(Color.yellow));
             }
         }
         private void ModManager_onPermissionValueChanged(bool optionValue)
@@ -389,11 +278,12 @@ namespace ModShelter
             }
         }
 
-        private void InitData()
+        protected virtual void InitData()
         {
             LocalHUDManager = HUDManager.Get();
             LocalPlayer = Player.Get();
             LocalConstructionManager = ConstructionsManager.Get();
+            LocalStylingManager = StylingManager.Get();
         }
 
         private void InitSkinUI()
@@ -436,6 +326,11 @@ namespace ModShelter
 
         private void ScreenMenuBox()
         {
+            if (GUI.Button(new Rect(ModShelterScreen.width - 60f, 0f, 20f, 20f), "=", GUI.skin.button))
+            {
+                ResizeWindow();
+            }
+
             string CollapseButtonText = IsModShelterScreenMinimized ? "O" : "-";
             if (GUI.Button(new Rect(ModShelterScreen.width - 40f, 0f, 20f, 20f), CollapseButtonText, GUI.skin.button))
             {
@@ -445,6 +340,36 @@ namespace ModShelter
             if (GUI.Button(new Rect(ModShelterScreen.width - 20f, 0f, 20f, 20f), "X", GUI.skin.button))
             {
                 CloseWindow();
+            }
+        }
+
+        private void ResizeWindow()
+        {
+            try
+            {
+                if (Input.GetMouseButtonDown(0))
+                {
+                    Vector2 position = ModShelterScreen.position;
+                    Vector2 resized = ModShelterScreen.size;
+
+                    ModShelterScreenStartPositionX = ModShelterScreen.x;
+                    ModShelterScreenStartPositionY = ModShelterScreen.y;
+
+                    if (resized.x >= ModShelterScreenMinWidth && resized.y >= ModShelterScreenMinHeight)
+                    {
+                        resized.x = ModShelterScreen.width;
+                        resized.y = ModShelterScreen.height;
+                        ModShelterScreen.size.Scale(resized);
+                        ModShelterScreenTotalWidth = resized.x;
+                        ModShelterScreenTotalHeight = resized.y;
+                        GUI.DragWindow(new Rect(ModShelterScreenStartPositionX, ModShelterScreenStartPositionY, resized.x, resized.y));
+                    }
+                }            
+                ModShelterScreen = new Rect(ModShelterScreenStartPositionX, ModShelterScreenStartPositionY, ModShelterScreenTotalWidth, ModShelterScreenTotalHeight);
+            }
+            catch (Exception exc)
+            {
+                HandleException(exc, nameof(ResizeWindow));
             }
         }
 
@@ -459,6 +384,7 @@ namespace ModShelter
             ModShelterScreenStartPositionX = ModShelterScreen.x;
             ModShelterScreenStartPositionY = ModShelterScreen.y;
             ModShelterScreenTotalWidth = ModShelterScreen.width;
+            ModShelterScreenTotalHeight = ModShelterScreen.height;
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
@@ -481,8 +407,8 @@ namespace ModShelter
                 {
                     using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        GUILayout.Label($"{ModName} Manager", ColoredHeaderLabel(Color.yellow));
-                        GUILayout.Label($"{ModName} Options", ColoredSubHeaderLabel(Color.yellow));
+                        GUILayout.Label($"{ModName} Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
+                        GUILayout.Label($"{ModName} Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
                         if (GUILayout.Button($"Mod Info", GUI.skin.button))
                         {
@@ -513,42 +439,42 @@ namespace ModShelter
             {
                 ModInfoScrollViewPosition = GUILayout.BeginScrollView(ModInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
 
-                GUILayout.Label("Mod Info", ColoredSubHeaderLabel(Color.cyan));
+                GUILayout.Label("Mod Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
 
                 using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"{nameof(IConfigurableMod.GameID)}:", FormFieldNameLabel);
-                    GUILayout.Label($"{SelectedMod.GameID}", FormFieldValueLabel);
+                    GUILayout.Label($"{nameof(IConfigurableMod.GameID)}:", LocalStylingManager.FormFieldNameLabel);
+                    GUILayout.Label($"{SelectedMod.GameID}", LocalStylingManager.FormFieldValueLabel);
                 }
                 using (var midScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"{nameof(IConfigurableMod.ID)}:", FormFieldNameLabel);
-                    GUILayout.Label($"{SelectedMod.ID}", FormFieldValueLabel);
+                    GUILayout.Label($"{nameof(IConfigurableMod.ID)}:", LocalStylingManager.FormFieldNameLabel);
+                    GUILayout.Label($"{SelectedMod.ID}", LocalStylingManager.FormFieldValueLabel);
                 }
                 using (var uidScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"{nameof(IConfigurableMod.UniqueID)}:", FormFieldNameLabel);
-                    GUILayout.Label($"{SelectedMod.UniqueID}", FormFieldValueLabel);
+                    GUILayout.Label($"{nameof(IConfigurableMod.UniqueID)}:", LocalStylingManager.FormFieldNameLabel);
+                    GUILayout.Label($"{SelectedMod.UniqueID}", LocalStylingManager.FormFieldValueLabel);
                 }
                 using (var versionScope = new GUILayout.HorizontalScope(GUI.skin.box))
                 {
-                    GUILayout.Label($"{nameof(IConfigurableMod.Version)}:", FormFieldNameLabel);
-                    GUILayout.Label($"{SelectedMod.Version}", FormFieldValueLabel);
+                    GUILayout.Label($"{nameof(IConfigurableMod.Version)}:", LocalStylingManager.FormFieldNameLabel);
+                    GUILayout.Label($"{SelectedMod.Version}", LocalStylingManager.FormFieldValueLabel);
                 }
 
-                GUILayout.Label("Buttons Info", ColoredSubHeaderLabel(Color.cyan));
+                GUILayout.Label("Buttons Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
 
                 foreach (var configurableModButton in SelectedMod.ConfigurableModButtons)
                 {
                     using (var btnidScope = new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label($"{nameof(IConfigurableModButton.ID)}:", FormFieldNameLabel);
-                        GUILayout.Label($"{configurableModButton.ID}", FormFieldValueLabel);
+                        GUILayout.Label($"{nameof(IConfigurableModButton.ID)}:", LocalStylingManager.FormFieldNameLabel);
+                        GUILayout.Label($"{configurableModButton.ID}", LocalStylingManager.FormFieldValueLabel);
                     }
                     using (var btnbindScope = new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label($"{nameof(IConfigurableModButton.KeyBinding)}:", FormFieldNameLabel);
-                        GUILayout.Label($"{configurableModButton.KeyBinding}", FormFieldValueLabel);
+                        GUILayout.Label($"{nameof(IConfigurableModButton.KeyBinding)}:", LocalStylingManager.FormFieldNameLabel);
+                        GUILayout.Label($"{configurableModButton.KeyBinding}", LocalStylingManager.FormFieldValueLabel);
                     }
                 }
 
@@ -564,12 +490,12 @@ namespace ModShelter
                 {
                     using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        GUILayout.Label($"Constructions Manager", ColoredHeaderLabel(Color.yellow));
-                        GUILayout.Label($"Constructions Options", ColoredSubHeaderLabel(Color.yellow));
+                        GUILayout.Label($"Constructions Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
+                        GUILayout.Label($"Constructions Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
                         InstantBuildOptionBox();
 
-                        GUILayout.Label("Here you can create several items from the game which cannot be crafted by default.", TextLabel);
+                        GUILayout.Label("Here you can create several items from the game which cannot be crafted by default.", LocalStylingManager.TextLabel);
 
                         DestroyTargetOptionBox();
 
@@ -591,9 +517,9 @@ namespace ModShelter
 
         private void DestroyTargetOptionBox()
         {
-            GUILayout.Label("To be able to remove any of your created items, you will have to enable this option.", TextLabel);
-            GUILayout.Label("Once enabled, focus the mouse pointer on the item, then push [KeypadMinus].", TextLabel);
-            GUILayout.Label("Please note that you can delete any object you want when this option is enabled!", ColoredCommentLabel(Color.yellow));
+            GUILayout.Label("To be able to remove any of your created items, you will have to enable this option.", LocalStylingManager.TextLabel);
+            GUILayout.Label("Once enabled, focus the mouse pointer on the item, then push [KeypadMinus].", LocalStylingManager.TextLabel);
+            GUILayout.Label("Please note that you can delete any object you want when this option is enabled!", LocalStylingManager.ColoredCommentLabel(Color.yellow));
 
             LocalConstructionManager.DestroyTargetOption = GUILayout.Toggle(LocalConstructionManager.DestroyTargetOption, $"Use [{KeyCode.KeypadMinus}] to destroy target?", GUI.skin.toggle);
         }
@@ -602,7 +528,7 @@ namespace ModShelter
         {
             try
             {
-                InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
             }
             catch (Exception exc)
             {
@@ -616,7 +542,7 @@ namespace ModShelter
             {
                 using (new GUILayout.VerticalScope(GUI.skin.box))
                 {
-                    GUILayout.Label("Multiplayer Options", ColoredSubHeaderLabel(Color.yellow));
+                    GUILayout.Label("Multiplayer Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
                     string multiplayerOptionMessage = string.Empty;
                     if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
@@ -629,7 +555,7 @@ namespace ModShelter
                         {
                             multiplayerOptionMessage = $"the game host allowed usage";
                         }
-                     GUILayout.Label(PermissionChangedMessage($"granted", multiplayerOptionMessage), ColoredFieldValueLabel(Color.green));
+                     GUILayout.Label(PermissionChangedMessage($"granted", multiplayerOptionMessage), LocalStylingManager.ColoredFieldValueLabel(Color.green));
                     }
                     else
                     {
@@ -641,7 +567,7 @@ namespace ModShelter
                         {
                             multiplayerOptionMessage = $"the game host did not allow usage";
                         }
-                        GUILayout.Label(PermissionChangedMessage($"revoked", $"{multiplayerOptionMessage}"), ColoredFieldValueLabel(Color.yellow));
+                        GUILayout.Label(PermissionChangedMessage($"revoked", $"{multiplayerOptionMessage}"), LocalStylingManager.ColoredFieldValueLabel(Color.yellow));
                     }
                 }
             }
@@ -659,10 +585,10 @@ namespace ModShelter
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To unlock all shelters and beds, click ", TextLabel);
+                        GUILayout.Label("To unlock all shelters and beds, click ", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("Unlock blueprints", GUI.skin.button, GUILayout.Width(150f)))
                         {
-                            OnClickUnlockRestingPlacesButton();
+                            OnClickUnlockBlueprintsButton();
                         }
                     }
                 }
@@ -673,7 +599,7 @@ namespace ModShelter
             }
         }
 
-        private void OnClickUnlockRestingPlacesButton()
+        private void OnClickUnlockBlueprintsButton()
         {
             try
             {
@@ -681,7 +607,7 @@ namespace ModShelter
             }
             catch (Exception exc)
             {
-                HandleException(exc, nameof(OnClickUnlockRestingPlacesButton));
+                HandleException(exc, nameof(OnClickUnlockBlueprintsButton));
             }
         }
 
@@ -689,12 +615,10 @@ namespace ModShelter
         {
             try
             {
-                if (!HasUnlockedRestingPlaces)
+                if (!LocalConstructionManager.HasUnlockedRestingPlaces)
                 {
-                    UnlockShelters();
-                    UnlockBeds();
                     LocalConstructionManager.UnlockRestingPlaces();
-                    HasUnlockedRestingPlaces = true;
+                    LocalConstructionManager.HasUnlockedRestingPlaces = true;
                 }
                 else
                 {
@@ -706,17 +630,7 @@ namespace ModShelter
                 HandleException(exc, nameof(UnlockAllRestingPlaces));
             }
         }
-
-        private void UnlockShelters()
-        {
-            LocalConstructionManager.UnlockShelters();
-        }
-
-        private void UnlockBeds()
-        {
-            LocalConstructionManager.UnlockBeds();
-        }
-
+        
         private void CreateOtherBedBox()
         {
             try
@@ -725,7 +639,7 @@ namespace ModShelter
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a military bed, click", TextLabel);
+                        GUILayout.Label("To place a military bed, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.military_bed_toUse);
@@ -733,7 +647,7 @@ namespace ModShelter
                     }
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a mattras, click", TextLabel);
+                        GUILayout.Label("To place a mattras, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.mattress_a);
@@ -741,7 +655,7 @@ namespace ModShelter
                     }
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a car sofa, click", TextLabel);
+                        GUILayout.Label("To place a car sofa, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.car_sofa);
@@ -749,7 +663,7 @@ namespace ModShelter
                     }
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a village hammock type A, click", TextLabel);
+                        GUILayout.Label("To place a village hammock type A, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.village_hammock_a);
@@ -757,7 +671,7 @@ namespace ModShelter
                     }
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a village hammock type B, click", TextLabel);
+                        GUILayout.Label("To place a village hammock type B, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.village_hammock_b);
@@ -765,7 +679,7 @@ namespace ModShelter
                     }
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
-                        GUILayout.Label("To place a hammock type A, click", TextLabel);
+                        GUILayout.Label("To place a hammock type A, click", LocalStylingManager.TextLabel);
                         if (GUILayout.Button("create", GUI.skin.button, GUILayout.Width(150f)))
                         {
                             OnClickCreateOtherBedButton(ItemID.hammock_a);
