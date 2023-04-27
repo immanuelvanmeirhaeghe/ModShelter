@@ -368,7 +368,7 @@ namespace ModShelter
             {
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+                    using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
                         GUILayout.Label($"{ModName} Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                         GUILayout.Label($"{ModName} Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
@@ -451,7 +451,7 @@ namespace ModShelter
             {
                 if (IsModActiveForMultiplayer || IsModActiveForSingleplayer)
                 {
-                    using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+                    using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
                         GUILayout.Label($"Constructions Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                         GUILayout.Label($"Constructions Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
@@ -503,7 +503,7 @@ namespace ModShelter
         {
             try
             {
-                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+                using (new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     GUILayout.Label("Multiplayer Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
@@ -544,7 +544,7 @@ namespace ModShelter
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+                using (new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
@@ -598,7 +598,7 @@ namespace ModShelter
         {
             try
             {
-                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
+                using (new GUILayout.VerticalScope(GUI.skin.box))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
