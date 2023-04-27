@@ -51,8 +51,7 @@ namespace ModShelter
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;
-        public Vector2 ModShelterScreenTotalSize { get; set; }
-
+      
         public KeyCode GetShortcutKey(string buttonID)
         {
             var ConfigurableModList = GetModList();
@@ -293,7 +292,7 @@ namespace ModShelter
 
         private void ShowModShelterWindow()
         {
-            if (ModShelterScreenId < 0 )
+            if (ModShelterScreenId <= 0 )
             {
                 ModShelterScreenId = GetHashCode();
             }
@@ -326,11 +325,6 @@ namespace ModShelter
 
         private void ScreenMenuBox()
         {
-            if (GUI.Button(new Rect(ModShelterScreen.width - 60f, 0f, 20f, 20f), "=", GUI.skin.button))
-            {
-                ResizeWindow();
-            }
-
             string CollapseButtonText = IsModShelterScreenMinimized ? "O" : "-";
             if (GUI.Button(new Rect(ModShelterScreen.width - 40f, 0f, 20f, 20f), CollapseButtonText, GUI.skin.button))
             {
@@ -342,37 +336,7 @@ namespace ModShelter
                 CloseWindow();
             }
         }
-
-        private void ResizeWindow()
-        {
-            try
-            {
-                if (Input.GetMouseButtonDown(0))
-                {
-                    Vector2 position = ModShelterScreen.position;
-                    Vector2 resized = ModShelterScreen.size;
-
-                    ModShelterScreenStartPositionX = ModShelterScreen.x;
-                    ModShelterScreenStartPositionY = ModShelterScreen.y;
-
-                    if (resized.x >= ModShelterScreenMinWidth && resized.y >= ModShelterScreenMinHeight)
-                    {
-                        resized.x = ModShelterScreen.width;
-                        resized.y = ModShelterScreen.height;
-                        ModShelterScreen.size.Scale(resized);
-                        ModShelterScreenTotalWidth = resized.x;
-                        ModShelterScreenTotalHeight = resized.y;
-                        GUI.DragWindow(new Rect(ModShelterScreenStartPositionX, ModShelterScreenStartPositionY, resized.x, resized.y));
-                    }
-                }            
-                ModShelterScreen = new Rect(ModShelterScreenStartPositionX, ModShelterScreenStartPositionY, ModShelterScreenTotalWidth, ModShelterScreenTotalHeight);
-            }
-            catch (Exception exc)
-            {
-                HandleException(exc, nameof(ResizeWindow));
-            }
-        }
-
+        
         private void CloseWindow()
         {
             ShowModShelter = false;
@@ -382,13 +346,12 @@ namespace ModShelter
         private void InitModShelterScreen(int windowID)
         {
             ModShelterScreenStartPositionX = ModShelterScreen.x;
-            ModShelterScreenStartPositionY = ModShelterScreen.y;
-            ModShelterScreenTotalWidth = ModShelterScreen.width;
-            ModShelterScreenTotalHeight = ModShelterScreen.height;
+            ModShelterScreenStartPositionY = ModShelterScreen.y;         
 
-            using (new GUILayout.VerticalScope(GUI.skin.box))
+            using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
             {
                 ScreenMenuBox();
+
                 if (!IsModShelterScreenMinimized)
                 {
                     ModShelterManagerBox();
@@ -405,7 +368,7 @@ namespace ModShelter
             {
                 if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    using (new GUILayout.VerticalScope(GUI.skin.box))
+                    using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
                     {
                         GUILayout.Label($"{ModName} Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                         GUILayout.Label($"{ModName} Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
@@ -446,7 +409,7 @@ namespace ModShelter
                     GUILayout.Label($"{nameof(IConfigurableMod.GameID)}:", LocalStylingManager.FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.GameID}", LocalStylingManager.FormFieldValueLabel);
                 }
-                using (var midScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label($"{nameof(IConfigurableMod.ID)}:", LocalStylingManager.FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.ID}", LocalStylingManager.FormFieldValueLabel);
@@ -488,7 +451,7 @@ namespace ModShelter
             {
                 if (IsModActiveForMultiplayer || IsModActiveForSingleplayer)
                 {
-                    using (new GUILayout.VerticalScope(GUI.skin.box))
+                    using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
                     {
                         GUILayout.Label($"Constructions Manager", LocalStylingManager.ColoredHeaderLabel(Color.yellow));
                         GUILayout.Label($"Constructions Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
@@ -540,7 +503,7 @@ namespace ModShelter
         {
             try
             {
-                using (new GUILayout.VerticalScope(GUI.skin.box))
+                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
                 {
                     GUILayout.Label("Multiplayer Options", LocalStylingManager.ColoredSubHeaderLabel(Color.yellow));
 
@@ -581,7 +544,7 @@ namespace ModShelter
         {
             if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
             {
-                using (new GUILayout.VerticalScope(GUI.skin.box))
+                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {
@@ -635,7 +598,7 @@ namespace ModShelter
         {
             try
             {
-                using (new GUILayout.VerticalScope(GUI.skin.box))
+                using (new GUILayout.VerticalScope(LocalStylingManager.WindowBox))
                 {
                     using (new GUILayout.HorizontalScope(GUI.skin.box))
                     {

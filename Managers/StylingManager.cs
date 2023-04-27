@@ -48,36 +48,48 @@ namespace ModShelter.Managers
         public Color DefaultColor = GUI.color;
         public Color DefaultContentColor = GUI.contentColor;
         public Color DefaultBackGroundColor = GUI.backgroundColor;
+
+        public GUIStyle WindowBox => new GUIStyle(GUI.skin.box)
+        {
+            stretchWidth = true,
+            stretchHeight = true,
+            wordWrap = true
+        };
         public GUIStyle HeaderLabel => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleCenter,
             fontStyle = FontStyle.Bold,
-            fontSize = 16
+            fontSize = 16,
+            stretchWidth = true,
+            wordWrap = true
         };
         public GUIStyle SubHeaderLabel => new GUIStyle(GUI.skin.label)
         {
             alignment = HeaderLabel.alignment,
             fontStyle = HeaderLabel.fontStyle,
             fontSize = HeaderLabel.fontSize - 2,
+            stretchWidth = true,
+            wordWrap = true
         };
         public GUIStyle FormFieldNameLabel => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleLeft,
             fontSize = 12,
-            stretchWidth = true
+            stretchWidth = true,
+            wordWrap = true
         };
         public GUIStyle FormFieldValueLabel => new GUIStyle(GUI.skin.label)
         {
             alignment = TextAnchor.MiddleRight,
             fontSize = 12,
-            stretchWidth = true
+            stretchWidth = true,
+            wordWrap = true
         };
         public GUIStyle FormInputTextField => new GUIStyle(GUI.skin.textField)
         {
             alignment = TextAnchor.MiddleRight,
             fontSize = 12,
-            stretchWidth = true,
-            stretchHeight = true,
+            stretchWidth = true,            
             wordWrap = true
         };
         public GUIStyle CommentLabel => new GUIStyle(GUI.skin.label)
