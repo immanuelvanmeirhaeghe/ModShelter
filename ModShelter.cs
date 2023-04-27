@@ -160,7 +160,7 @@ namespace ModShelter
         public Vector2 ModInfoScrollViewPosition { get; private set; }
         public IConfigurableMod SelectedMod { get; set; }
         public bool HasUnlockedRestingPlaces { get; set; } = false;
-        public bool InstantBuild { get; private set; } = false;
+        public bool InstantBuildOption { get; private set; } = false;
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
         public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;       
@@ -602,7 +602,7 @@ namespace ModShelter
         {
             try
             {
-                InstantBuild = GUILayout.Toggle(InstantBuild, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                InstantBuildOption = GUILayout.Toggle(InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
             }
             catch (Exception exc)
             {
@@ -616,8 +616,9 @@ namespace ModShelter
             {
                 using (new GUILayout.VerticalScope(GUI.skin.box))
                 {
+                    GUILayout.Label("Multiplayer Options", ColoredSubHeaderLabel(Color.yellow));
+
                     string multiplayerOptionMessage = string.Empty;
-                    GUILayout.Label("Multiplayer Info", ColoredSubHeaderLabel(Color.yellow));
                     if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                     {
                         if (IsModActiveForSingleplayer)
@@ -628,7 +629,7 @@ namespace ModShelter
                         {
                             multiplayerOptionMessage = $"the game host allowed usage";
                         }
-                        GUILayout.Label($"{PermissionChangedMessage($"granted", multiplayerOptionMessage)}", ColoredToggleValueTextLabel(true, Color.green, Color.red));
+                     GUILayout.Label(PermissionChangedMessage($"granted", multiplayerOptionMessage), ColoredFieldValueLabel(Color.green));
                     }
                     else
                     {
@@ -640,7 +641,7 @@ namespace ModShelter
                         {
                             multiplayerOptionMessage = $"the game host did not allow usage";
                         }
-                        GUILayout.Label($"{PermissionChangedMessage($"revoked", multiplayerOptionMessage)}", ColoredToggleValueTextLabel(false, Color.green, Color.yellow));
+                        GUILayout.Label(PermissionChangedMessage($"revoked", $"{multiplayerOptionMessage}"), ColoredFieldValueLabel(Color.yellow));
                     }
                 }
             }
