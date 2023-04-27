@@ -163,7 +163,7 @@ namespace ModShelter
         public bool InstantBuild { get; private set; } = false;
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
-        public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad0;       
+        public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;       
         public KeyCode GetShortcutKey(string buttonID)
         {
             var ConfigurableModList = GetModList();
@@ -244,11 +244,9 @@ namespace ModShelter
             => $"<color=#{(headcolor != null ? ColorUtility.ToHtmlStringRGBA(headcolor.Value) : ColorUtility.ToHtmlStringRGBA(Color.red))}>{messageType}</color>\n{message}";
         private void OnlyForSingleplayerOrWhenHostBox()
         {
-            using (var infoScope = new GUILayout.HorizontalScope(GUI.skin.box))
+            using (new GUILayout.HorizontalScope(GUI.skin.box))
             {
-                GUI.color = Color.yellow;
-                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), GUI.skin.label);
-                GUI.color = DefaultColor;
+                GUILayout.Label(OnlyForSinglePlayerOrHostMessage(), ColoredCommentLabel(Color.yellow));
             }
         }
         private void ModManager_onPermissionValueChanged(bool optionValue)
@@ -460,13 +458,16 @@ namespace ModShelter
         {
             ModShelterScreenStartPositionX = ModShelterScreen.x;
             ModShelterScreenStartPositionY = ModShelterScreen.y;
+            ModShelterScreenTotalWidth = ModShelterScreen.width;
 
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
                 ScreenMenuBox();
                 if (!IsModShelterScreenMinimized)
                 {
-                    ModShelterManagerBox();                   
+                    ModShelterManagerBox();
+
+                    ConstructionsManagerBox();
                 }
             }
             GUI.DragWindow(new Rect(0f, 0f, 10000f, 10000f));
@@ -474,30 +475,35 @@ namespace ModShelter
 
         private void ModShelterManagerBox()
         {
-            if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
+            try
             {
-                using (new GUILayout.VerticalScope(GUI.skin.box))
+                if (IsModActiveForSingleplayer || IsModActiveForMultiplayer)
                 {
-                    GUILayout.Label($"{ModName} Manager", ColoredHeaderLabel(Color.yellow));
-                    GUILayout.Label($"{ModName} Options", ColoredSubHeaderLabel(Color.yellow));
-
-                    if (GUILayout.Button($"Mod Info", GUI.skin.button))
+                    using (new GUILayout.VerticalScope(GUI.skin.box))
                     {
-                        ToggleShowUI(3);
-                    }
-                    if (ShowModInfo)
-                    {
-                        ModInfoBox();
-                    }
+                        GUILayout.Label($"{ModName} Manager", ColoredHeaderLabel(Color.yellow));
+                        GUILayout.Label($"{ModName} Options", ColoredSubHeaderLabel(Color.yellow));
 
-                    MultiplayerOptionBox();
+                        if (GUILayout.Button($"Mod Info", GUI.skin.button))
+                        {
+                            ToggleShowUI(3);
+                        }
+                        if (ShowModInfo)
+                        {
+                            ModInfoBox();
+                        }
 
-                    ConstructionsManagerBox();
+                        MultiplayerOptionBox();                       
+                    }
+                }
+                else
+                {
+                    OnlyForSingleplayerOrWhenHostBox();
                 }
             }
-            else
+            catch (Exception exc)
             {
-                OnlyForSingleplayerOrWhenHostBox();
+                HandleException(exc, nameof(ModShelterManagerBox));
             }
         }
 
@@ -509,7 +515,7 @@ namespace ModShelter
 
                 GUILayout.Label("Mod Info", ColoredSubHeaderLabel(Color.cyan));
 
-                using (var gidScope = new GUILayout.HorizontalScope(GUI.skin.box))
+                using (new GUILayout.HorizontalScope(GUI.skin.box))
                 {
                     GUILayout.Label($"{nameof(IConfigurableMod.GameID)}:", FormFieldNameLabel);
                     GUILayout.Label($"{SelectedMod.GameID}", FormFieldValueLabel);
@@ -554,20 +560,27 @@ namespace ModShelter
         {
             try
             {
-                using (new GUILayout.VerticalScope(GUI.skin.box))
+                if (IsModActiveForMultiplayer || IsModActiveForSingleplayer)
                 {
-                    GUILayout.Label($"Constructions Manager", ColoredHeaderLabel(Color.yellow));
-                    GUILayout.Label($"Constructions Options", ColoredSubHeaderLabel(Color.yellow));
+                    using (new GUILayout.VerticalScope(GUI.skin.box))
+                    {
+                        GUILayout.Label($"Constructions Manager", ColoredHeaderLabel(Color.yellow));
+                        GUILayout.Label($"Constructions Options", ColoredSubHeaderLabel(Color.yellow));
 
-                    InstantBuildOptionBox();
+                        InstantBuildOptionBox();
 
-                    GUILayout.Label("Here you can create several items from the game which cannot be crafted by default.", TextLabel);
+                        GUILayout.Label("Here you can create several items from the game which cannot be crafted by default.", TextLabel);
 
-                    DestroyTargetOptionBox();
+                        DestroyTargetOptionBox();
 
-                    UnlockRestingPlacesBox();
+                        UnlockRestingPlacesBox();
 
-                    CreateOtherBedBox();
+                        CreateOtherBedBox();
+                    }
+                }
+                else
+                {
+                    OnlyForSingleplayerOrWhenHostBox();
                 }
             }
             catch (Exception exc)
