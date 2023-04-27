@@ -174,7 +174,7 @@ namespace ModShelter
             }
             else
             {
-                return ShortcutKey;
+                return KeyCode.Keypad1;
             }
         }
        
