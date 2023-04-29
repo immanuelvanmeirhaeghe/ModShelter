@@ -227,6 +227,11 @@ namespace ModShelter
                 }
             }
 
+            if (IsModEnabled && InstantBuildEnabled && Input.GetKeyDown(KeyCode.F8))
+            {
+
+            }
+
             if (Input.GetKeyDown(KeyCode.KeypadMinus))
             {
                 DestroyTarget();
@@ -495,8 +500,8 @@ namespace ModShelter
         {
             try
             {
-                bool _instantBuildOption = LocalConstructionManager.InstantBuildOption;
-                if (LocalConstructionManager.InstantBuildOption)
+                bool _instantBuildOption = Cheats.m_InstantBuild;
+                if (Cheats.m_InstantBuild)
                 {
                     InstantBuildEnabled = true;
                 }
@@ -504,19 +509,19 @@ namespace ModShelter
                 {
                     InstantBuildEnabled = false;
                 }
-                LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                Cheats.m_InstantBuild = GUILayout.Toggle(Cheats.m_InstantBuild, $"Instantly build and finish any constructions?", GUI.skin.toggle);
 
-                if (_instantBuildOption != LocalConstructionManager.InstantBuildOption)
+                if (_instantBuildOption != Cheats.m_InstantBuild)
                 {
-                    if (LocalConstructionManager.InstantBuildOption)
+                    if (Cheats.m_InstantBuild)
                     {
-                        InstantBuildEnabled = true;
+                        InstantBuildEnabled = true;                        
                     }
                     else
                     {
                         InstantBuildEnabled = false;
                     }
-                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
                 }
             }
             catch (Exception exc)
@@ -693,5 +698,6 @@ namespace ModShelter
                 HandleException(exc, nameof(OnClickCreateOtherBedButton));
             }
         }
+
     }
 }

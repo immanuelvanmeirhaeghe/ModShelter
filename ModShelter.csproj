@@ -332,7 +332,7 @@
     <Compile Include="Data\Interfaces\IConfigurableModButton.cs" />
     <Compile Include="Data\Modding\ConfigurableMod.cs" />
     <Compile Include="Data\Modding\ConfigurableModButton.cs" />
-    <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
+    <Compile Include="Extensions\ConstructionExtended.cs" />
     <Compile Include="Extensions\ItemInfoExtended.cs" />
     <Compile Include="Managers\ConstructionsManager.cs" />
     <Compile Include="Managers\StylingManager.cs" />
