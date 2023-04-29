@@ -45,7 +45,7 @@ namespace ModShelter
         private static ConstructionsManager LocalConstructionManager;
         private static StylingManager LocalStylingManager;
               
-        public Vector2 ModInfoScrollViewPosition { get; private set; }
+        public Vector2 ModShelterInfoScrollViewPosition { get; private set; }
         public IConfigurableMod SelectedMod { get; set; }
       
         public bool IsModActiveForMultiplayer { get; private set; } = false;
@@ -298,7 +298,7 @@ namespace ModShelter
         {
             if (ModShelterScreenId <= 0 )
             {
-                ModShelterScreenId = GetHashCode();
+                ModShelterScreenId = ModShelterScreen.GetHashCode();
             }
             string modShelterScreenTitle = $"{ModName} created by [Dragon Legion] Immaanuel#4300";
             ModShelterScreen = GUILayout.Window(ModShelterScreenId, ModShelterScreen, InitModShelterScreen, modShelterScreenTitle,
@@ -383,7 +383,7 @@ namespace ModShelter
                         }
                         if (ShowModShelterInfo)
                         {
-                            ModInfoBox();
+                            ModShelterInfoBox();
                         }
 
                         MultiplayerOptionBox();                       
@@ -400,11 +400,11 @@ namespace ModShelter
             }
         }
 
-        private void ModInfoBox()
+        private void ModShelterInfoBox()
         {
             using (new GUILayout.VerticalScope(GUI.skin.box))
             {
-                ModInfoScrollViewPosition = GUILayout.BeginScrollView(ModInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
+                ModShelterInfoScrollViewPosition = GUILayout.BeginScrollView(ModShelterInfoScrollViewPosition, GUI.skin.scrollView, GUILayout.MinHeight(150f));
 
                 GUILayout.Label("Mod Info", LocalStylingManager.ColoredSubHeaderLabel(Color.cyan));
 
@@ -495,10 +495,18 @@ namespace ModShelter
         {
             try
             {
-                InstantBuildOption = LocalConstructionManager.InstantBuildOption;
+                bool _instantBuildOption = LocalConstructionManager.InstantBuildOption;
+                if (LocalConstructionManager.InstantBuildOption)
+                {
+                    InstantBuildEnabled = true;
+                }
+                else
+                {
+                    InstantBuildEnabled = false;
+                }
                 LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
 
-                if (InstantBuildOption != LocalConstructionManager.InstantBuildOption)
+                if (_instantBuildOption != LocalConstructionManager.InstantBuildOption)
                 {
                     if (LocalConstructionManager.InstantBuildOption)
                     {
@@ -508,7 +516,7 @@ namespace ModShelter
                     {
                         InstantBuildEnabled = false;
                     }
-                    ShowHUDBigInfo(HUDBigInfoMessage($"Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Mod is {(IsModEnabled ? "enabled" : "disabled")}\nInstant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
                 }
             }
             catch (Exception exc)
