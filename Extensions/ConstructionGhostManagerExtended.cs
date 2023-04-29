@@ -8,34 +8,25 @@ namespace ModShelter.Extensions
     {
         protected override void Update()
         {
-			try
-			{
-                if (ModShelter.IsModEnabled && ModShelter.InstantBuildEnabled && Input.GetKeyDown(KeyCode.F8))
+            if (ModShelter.IsModEnabled && ModShelter.InstantBuildEnabled && Input.GetKeyDown(KeyCode.F8))
+            {
+                foreach (ConstructionGhost m_Unfinished in m_AllGhosts.Where(
+                                          m_Ghost => m_Ghost.gameObject.activeSelf
+                                                                   && m_Ghost.GetState() != ConstructionGhost.GhostState.Ready))
                 {
-                    foreach (ConstructionGhost m_Unfinished in m_AllGhosts.Where(
-                                              m_Ghost => m_Ghost.gameObject.activeSelf
-                                                                       && m_Ghost.GetState() != ConstructionGhost.GhostState.Ready))
-                    {
-                        m_Unfinished.SetState(ConstructionGhost.GhostState.Ready);
-                    }
-                    UpdateActivity();
+                    m_Unfinished.SetState(ConstructionGhost.GhostState.Ready);
                 }
-                else
-                {
-                    base.Update();
-                }
-              
+                UpdateActivity();
             }
-			catch (System.Exception exc)
-			{
-                Debug.LogException(exc);
-				base.Update();
-			}
+            else
+            {
+                base.Update();
+            }
         }
 
         protected override void UpdateActivity()
         {
-            try
+            if (ModShelter.IsModEnabled && ModShelter.InstantBuildEnabled)
             {
                 if (RelevanceSystem.ENABLED || m_AllGhosts.Count == 0 || Time.time - m_LastUpdateActivityTime < m_UpdateActivityInterval)
                 {
@@ -90,9 +81,8 @@ namespace ModShelter.Extensions
 
                 m_LastUpdateActivityTime = Time.time;
             }
-            catch (System.Exception exc)
+            else
             {
-                Debug.LogException(exc);
                 base.UpdateActivity();
             }
         }
