@@ -227,11 +227,6 @@ namespace ModShelter
                 }
             }
 
-            if (IsModEnabled && InstantBuildEnabled && Input.GetKeyDown(KeyCode.F8))
-            {
-
-            }
-
             if (Input.GetKeyDown(KeyCode.KeypadMinus))
             {
                 DestroyTarget();
