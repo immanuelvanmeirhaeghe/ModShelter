@@ -52,7 +52,8 @@ namespace ModShelter
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
 
         public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;
-      
+        public bool InstantBuildOption { get; set; } = false;
+
         public KeyCode GetShortcutKey(string buttonID)
         {
             var ConfigurableModList = GetModList();
@@ -493,6 +494,7 @@ namespace ModShelter
             try
             {
                 LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+                InstantBuildOption = LocalConstructionManager.InstantBuildOption;
             }
             catch (Exception exc)
             {
