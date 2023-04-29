@@ -1,4 +1,4 @@
-﻿using ModShelter.Managers;
+﻿using Enums;
 using System.Linq;
 using UnityEngine;
 
@@ -8,8 +8,9 @@ namespace ModShelter.Extensions
     {
         protected override void Update()
         {
-                if ( (ModShelter.Get().IsModActiveForSingleplayer || ModShelter.Get().IsModActiveForMultiplayer)
-                    && ModShelter.Get().InstantBuildOption  && Input.GetKeyDown(KeyCode.F8))
+			try
+			{
+                if (ModShelter.IsModEnabled && ModShelter.InstantBuildEnabled && Input.GetKeyDown(KeyCode.F8))
                 {
                     foreach (ConstructionGhost m_Unfinished in m_AllGhosts.Where(
                                               m_Ghost => m_Ghost.gameObject.activeSelf
@@ -17,8 +18,83 @@ namespace ModShelter.Extensions
                     {
                         m_Unfinished.SetState(ConstructionGhost.GhostState.Ready);
                     }
+                    UpdateActivity();
                 }
-                base.Update();
+                else
+                {
+                    base.Update();
+                }
+              
+            }
+			catch (System.Exception exc)
+			{
+                Debug.LogException(exc);
+				base.Update();
+			}
+        }
+
+        protected override void UpdateActivity()
+        {
+            try
+            {
+                if (RelevanceSystem.ENABLED || m_AllGhosts.Count == 0 || Time.time - m_LastUpdateActivityTime < m_UpdateActivityInterval)
+                {
+                    return;
+                }
+
+                float num = Mathf.Min(20, m_AllGhosts.Count);
+                for (int i = 0; (float)i < num; i++)
+                {
+                    if (m_CurrentIndex >= m_AllGhosts.Count)
+                    {
+                        m_CurrentIndex = 0;
+                    }
+
+                    ConstructionGhost constructionGhost = m_AllGhosts[m_CurrentIndex];
+                    if (constructionGhost.m_Challenge)
+                    {
+                        m_CurrentIndex++;
+                        continue;
+                    }
+
+                    if (ScenarioManager.Get().IsPreDream())
+                    {
+                        if (constructionGhost.gameObject.activeSelf)
+                        {
+                            constructionGhost.gameObject.SetActive(value: false);
+                        }
+
+                        m_CurrentIndex++;
+                        continue;
+                    }
+
+                    if (constructionGhost.m_ResultItemID == ItemID.Bamboo_Bridge && GreenHellGame.Instance.m_GHGameMode == GameMode.Story)
+                    {
+                        if (constructionGhost.gameObject.activeSelf)
+                        {
+                            constructionGhost.gameObject.SetActive(value: false);
+                        }
+
+                        m_CurrentIndex++;
+                        continue;
+                    }
+
+                    bool flag = VectorExtention.Distance(Player.Get().transform.position, constructionGhost.transform.position) < m_ActivityDist;
+                    if (constructionGhost.gameObject.activeSelf != flag && !constructionGhost.IsReady())
+                    {
+                        constructionGhost.gameObject.SetActive(flag);
+                    }
+
+                    m_CurrentIndex++;
+                }
+
+                m_LastUpdateActivityTime = Time.time;
+            }
+            catch (System.Exception exc)
+            {
+                Debug.LogException(exc);
+                base.UpdateActivity();
+            }
         }
     }
 }

@@ -37,8 +37,8 @@ namespace ModShelter
         private static float ModShelterScreenStartPositionY { get; set; } = Screen.height / 3f;
         private bool IsModShelterScreenMinimized { get; set; } = false;
         private static Rect ModShelterScreen = new Rect(ModShelterScreenStartPositionX, ModShelterScreenStartPositionY, ModShelterScreenTotalWidth, ModShelterScreenTotalHeight);
-        private bool ShowModShelter { get; set; } = false;
-        private bool ShowModInfo { get; set; } = false;
+        private bool ShowModShelterScreen { get; set; } = false;
+        private bool ShowModShelterInfo { get; set; } = false;
 
         private static HUDManager LocalHUDManager;
         private static Player LocalPlayer;
@@ -50,9 +50,11 @@ namespace ModShelter
       
         public bool IsModActiveForMultiplayer { get; private set; } = false;
         public bool IsModActiveForSingleplayer => ReplTools.AmIMaster();
+        public static bool IsModEnabled => Get().IsModActiveForSingleplayer || Get().IsModActiveForMultiplayer;
 
         public KeyCode ShortcutKey { get; set; } = KeyCode.Keypad1;
-        public bool InstantBuildOption { get; set; } = false;
+        public bool InstantBuildOption { get; set; } = false;        
+        public static bool InstantBuildEnabled { get; set; } = false;
 
         public KeyCode GetShortcutKey(string buttonID)
         {
@@ -213,13 +215,13 @@ namespace ModShelter
         {
             if (Input.GetKeyDown(ShortcutKey))
             {
-                if (!ShowModShelter)
+                if (!ShowModShelterScreen)
                 {
                     InitData();
                     EnableCursor(true);
                 }
                 ToggleShowUI(0);
-                if (!ShowModShelter)
+                if (!ShowModShelterScreen)
                 {
                     EnableCursor(false);
                 }
@@ -257,21 +259,21 @@ namespace ModShelter
             switch (controlId)
             {
                 case 0:
-                    ShowModShelter = !ShowModShelter;
+                    ShowModShelterScreen = !ShowModShelterScreen;
                     return;             
                 case 3:
-                    ShowModInfo = !ShowModInfo;
+                    ShowModShelterInfo = !ShowModShelterInfo;
                     return;            
                 default:
-                    ShowModShelter = !ShowModShelter;
-                    ShowModInfo = !ShowModInfo;
+                    ShowModShelterScreen = !ShowModShelterScreen;
+                    ShowModShelterInfo = !ShowModShelterInfo;
                     return;
             }
         }
 
-        private void OnGUI()
+        protected virtual void OnGUI()
         {
-            if (ShowModShelter)
+            if (ShowModShelterScreen)
             {
                 InitData();
                 InitSkinUI();
@@ -341,7 +343,7 @@ namespace ModShelter
         
         private void CloseWindow()
         {
-            ShowModShelter = false;
+            ShowModShelterScreen = false;
             EnableCursor(false);
         }
 
@@ -379,7 +381,7 @@ namespace ModShelter
                         {
                             ToggleShowUI(3);
                         }
-                        if (ShowModInfo)
+                        if (ShowModShelterInfo)
                         {
                             ModInfoBox();
                         }
@@ -493,8 +495,21 @@ namespace ModShelter
         {
             try
             {
-                LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
                 InstantBuildOption = LocalConstructionManager.InstantBuildOption;
+                LocalConstructionManager.InstantBuildOption = GUILayout.Toggle(LocalConstructionManager.InstantBuildOption, $"Use [F8] to instantly finish any constructions?", GUI.skin.toggle);
+
+                if (InstantBuildOption != LocalConstructionManager.InstantBuildOption)
+                {
+                    if (LocalConstructionManager.InstantBuildOption)
+                    {
+                        InstantBuildEnabled = true;
+                    }
+                    else
+                    {
+                        InstantBuildEnabled = false;
+                    }
+                    ShowHUDBigInfo(HUDBigInfoMessage($"Instant build using [F8] has been {(InstantBuildEnabled ? "enabled" : "disabled")} ", MessageType.Info, Color.green));
+                }
             }
             catch (Exception exc)
             {

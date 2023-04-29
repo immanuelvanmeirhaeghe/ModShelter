@@ -22,7 +22,8 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
-  <ItemGroup />
+  <ItemGroup>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="BaseModLib">
       <HintPath>../../../libs/BaseModLib.dll</HintPath>
@@ -56,13 +57,9 @@
       <HintPath>../../../modlib/GH/GH_data/Managed/EasyRagdollCreatorLib.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="ModManager, Version=1.0.3.3, Culture=neutral, processorArchitecture=MSIL">
+    <Reference Include="ModManager, Version=1.0.3.8, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\libs\ModManager.dll</HintPath>
-    </Reference>
-    <Reference Include="Mono.Posix">
-      <HintPath>../../../modlib/GH/GH_data/Managed/Mono.Posix.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="Mono.Security">
       <HintPath>../../../modlib/GH/GH_data/Managed/Mono.Security.dll</HintPath>
@@ -70,18 +67,6 @@
     </Reference>
     <Reference Include="mscorlib">
       <HintPath>../../../modlib/GH/GH_data/Managed/mscorlib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Pathfinding.ClipperLib">
-      <HintPath>../../../modlib/GH/GH_data/Managed/Pathfinding.ClipperLib.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Pathfinding.Ionic.Zip.Reduced">
-      <HintPath>../../../modlib/GH/GH_data/Managed/Pathfinding.Ionic.Zip.Reduced.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="Pathfinding.Poly2Tri">
-      <HintPath>../../../modlib/GH/GH_data/Managed/Pathfinding.Poly2Tri.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Configuration">
@@ -252,10 +237,6 @@
       <HintPath>../../../modlib/GH/GH_data/Managed/UnityEngine.TerrainPhysicsModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.TextCoreModule">
-      <HintPath>../../../modlib/GH/GH_data/Managed/UnityEngine.TextCoreModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="UnityEngine.TextRenderingModule">
       <HintPath>../../../modlib/GH/GH_data/Managed/UnityEngine.TextRenderingModule.dll</HintPath>
       <Private>False</Private>
@@ -347,6 +328,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Data\Enums.cs" />
+    <Compile Include="Data\Interfaces\IConfigurableMod.cs" />
+    <Compile Include="Data\Interfaces\IConfigurableModButton.cs" />
+    <Compile Include="Data\Modding\ConfigurableMod.cs" />
+    <Compile Include="Data\Modding\ConfigurableModButton.cs" />
     <Compile Include="Extensions\ConstructionGhostExtended.cs" />
     <Compile Include="Extensions\ConstructionGhostManagerExtended.cs" />
     <Compile Include="Extensions\ItemInfoExtended.cs" />
